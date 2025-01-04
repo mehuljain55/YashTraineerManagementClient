@@ -14,9 +14,8 @@ const Register = () => {
     name: "",
     mobileNo: "",
     password: "",
-    officeId: "",
   });
-  const [officeList, setOfficeList] = useState([]); 
+
   const [showPassword, setShowPassword] = useState(false); 
   const [error, setError] = useState(null);
   const [successMessage, setSuccessMessage] = useState(null);
@@ -26,31 +25,6 @@ const Register = () => {
     emailId: "",
   });
   const navigate = useNavigate();
-
-
-  useEffect(() => {
-    const fetchOfficeList = async () => {
-      try {
-        const response = await axios.get(`${API_BASE_URL}/office/activeOfficeList`);
-        if (response.data.status === "success") {
-          setOfficeList(response.data.payload);
-          setFormData((prevData) => ({
-            ...prevData,
-            officeId: response.data.payload[0], 
-          }));
-        } else {
-          setError("Failed to load office list.");
-        }
-      } catch (err) {
-        console.error("Error fetching office list:", err);
-        setError("An error occurred while fetching office locations.");
-      }
-    };
-
-
-    fetchOfficeList();
-  }, []);
-
 
   const validateField = (name, value) => {
     switch (name) {
@@ -209,22 +183,7 @@ const Register = () => {
               <small className="text-danger">{validationErrors.password}</small>
             )}
           </div>
-          <div className="mb-3">
-            <label className="form-label">Office Location</label>
-            <select
-              className="form-select"
-              name="officeId"
-              value={formData.officeId}
-              onChange={handleInputChange}
-              required
-            >
-              {officeList.map((office, index) => (
-                <option key={index} value={office}>
-                  {office}
-                </option>
-              ))}
-            </select>
-          </div>
+       
           <button
             type="submit"
             className="btn w-100"

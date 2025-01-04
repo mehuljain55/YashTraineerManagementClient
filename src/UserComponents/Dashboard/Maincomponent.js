@@ -3,9 +3,9 @@ import YashLogo from "../Image/yash.jpg";
 import {  Button, Dropdown } from 'react-bootstrap';
 
 import Dashboard from "../Trainer/Dashboard";
-import ManagerDashboard from "../Manager/ManagerDashboard";
+import ViewTraining from "../Trainer/ViewTraining";
 import "bootstrap/dist/css/bootstrap.min.css";
-import OfficeManager from "../SuperAdmin/OfficeManager";
+
 
 const Maincomponent = () => {
   const [activeSection, setActiveSection] = useState("dashboard");
@@ -23,17 +23,17 @@ const Maincomponent = () => {
         return (
           <div>
           {user.role === "manager" ? (
-            <ManagerDashboard activeSection={setActiveSection} />
-          )  : (
             <Dashboard activeSection={setActiveSection} />
+          ) : (
+            <Dashboard />
           )}
         </div>
         
         );
-      case "cabinRequest":
+      case "ViewTraining":
         return (
           <div>
-            <CabinRequest />
+            <ViewTraining />
           </div>
         );
            
@@ -95,15 +95,16 @@ const Maincomponent = () => {
                         ? "fw-bold text-primary"
                         : "text-dark"
                     }`}
-                    onClick={() => setActiveSection("cabinRequest")}
+                    onClick={() => setActiveSection("ViewTraining")}
                   >
-                    Cabin Request
+                    View Training
                   </button>
                 </li>
                
               </ul>
             </>
           )}
+          
         </div>
       </div>
 

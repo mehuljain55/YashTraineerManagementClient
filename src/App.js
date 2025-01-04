@@ -3,7 +3,7 @@ import { Routes, Route, useNavigate, Navigate } from "react-router-dom";
 import Login from "./UserComponents/Login/Login.js";
 import Register from "./UserComponents/Login/Register.js";
 import API_BASE_URL from "./UserComponents/Config/Config.js";
-import Dashboard from "./UserComponents/Dashboard/Dashboard.js";
+import Dashboard from "./UserComponents/Dashboard/Maincomponent.js";
 
 const App = () => {
   const [loginStatus, setLoginStatus] = useState(false); // Tracks login success

@@ -1,0 +1,39 @@
+/* TrainingList.css */
+.create-training-button {
+    margin-bottom: 20px;
+  }
+  
+  .training-table {
+    margin-top: 20px;
+  }
+  
+  .modal-header {
+    background-color: #f8f9fa;
+  }
+  
+  .modal-footer {
+    background-color: #f8f9fa;
+  }
+  
+  /* ShowStatus.css */
+  .status-alert {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+  
+  .status-icon {
+    font-size: 20px;
+    margin-right: 10px;
+  }
+  
+  .status-message {
+    flex-grow: 1;
+  }
+  
+  .close-button {
+    font-size: 14px;
+    color: #007bff;
+  }
+  

@@ -7,7 +7,7 @@ import ShowStatus from "../StatusModel/ShowStatus"
 import './ViewTraining.css'; // Optional custom CSS for styling
 
 
-const ManagerDashboard = () => {
+const ViewTraining = () => {
   const [trainings, setTrainings] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [newTraining, setNewTraining] = useState({
@@ -21,7 +21,7 @@ const ManagerDashboard = () => {
 
   // Fetch training data
   useEffect(() => {
-    axios.get(`${API_BASE_URL}/trainer/trainings`)
+    axios.get(`${API_BASE_URL}/training/trainings`)
       .then((response) => {
         setTrainings(response.data);
       })
@@ -39,24 +39,17 @@ const ManagerDashboard = () => {
     }));
   };
 
-  // Retrieve User and Token from sessionStorage
-  const getUserFromSession = () => {
-    const user = JSON.parse(sessionStorage.getItem('user'));
-    return user ? user : null;
-  };
-
-  const getTokenFromSession = () => {
-    return sessionStorage.getItem('token');
-  };
 
   // Handle adding new training
   const handleAddTraining = () => {
-    const user = getUserFromSession();
-    const token = getTokenFromSession();
+    const token = sessionStorage.getItem("token");
+    const user = JSON.parse(sessionStorage.getItem("user"));
+
 
     if (user && token) {
-      axios.post(`${API_BASE_URL}/trainer/addNewTraining`, {
-        user: { emailId: user.emailId, token: token },
+      axios.post(`${API_BASE_URL}/training/addNewTraining`, {
+        user: user,
+        token:token,
         training: newTraining
       })
       .then((response) => {
@@ -172,4 +165,4 @@ const ManagerDashboard = () => {
   );
 };
 
-export default ManagerDashboard;
+export default ViewTraining;

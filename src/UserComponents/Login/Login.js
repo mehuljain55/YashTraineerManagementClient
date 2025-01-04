@@ -3,12 +3,12 @@ import { useNavigate } from "react-router-dom";
 import API_BASE_URL from "../Config/Config";
 import "bootstrap/dist/css/bootstrap.min.css";
 import YashLogo from "../Image/yash.jpg"; 
-import { FaEye, FaEyeSlash } from "react-icons/fa"; // Import icons for eye and eye-slash
+import { FaEye, FaEyeSlash } from "react-icons/fa";
 
 const Login = ({ setLoginStatus }) => {
   const [emailId, setEmailId] = useState("");
   const [password, setPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false); // State to toggle password visibility
+  const [showPassword, setShowPassword] = useState(false); 
   const [error, setError] = useState(null);
   const navigate = useNavigate();
 
@@ -18,7 +18,7 @@ const Login = ({ setLoginStatus }) => {
     sessionStorage.clear();
 
     try {
-      const response = await fetch(`${API_BASE_URL}/login/login`, {
+      const response = await fetch(`${API_BASE_URL}/user/login`, {
         method: "POST",
         headers: {
           "Content-Type": "application/x-www-form-urlencoded",
@@ -75,7 +75,7 @@ const Login = ({ setLoginStatus }) => {
               type="text"
               className="form-control"
               value={emailId}
-              onChange={(e) => setUserId(e.target.value)}
+              onChange={(e) => setEmailId(e.target.value)}
               required
             />
           </div>
