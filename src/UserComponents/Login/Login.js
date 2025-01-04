@@ -6,7 +6,7 @@ import YashLogo from "../Image/yash.jpg";
 import { FaEye, FaEyeSlash } from "react-icons/fa"; // Import icons for eye and eye-slash
 
 const Login = ({ setLoginStatus }) => {
-  const [userId, setUserId] = useState("");
+  const [emailId, setEmailId] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false); // State to toggle password visibility
   const [error, setError] = useState(null);
@@ -18,12 +18,12 @@ const Login = ({ setLoginStatus }) => {
     sessionStorage.clear();
 
     try {
-      const response = await fetch(`${API_BASE_URL}/user/login`, {
+      const response = await fetch(`${API_BASE_URL}/login/login`, {
         method: "POST",
         headers: {
           "Content-Type": "application/x-www-form-urlencoded",
         },
-        body: new URLSearchParams({ userId, password }),
+        body: new URLSearchParams({ emailId, password }),
       });
 
       if (!response.ok) {
@@ -70,11 +70,11 @@ const Login = ({ setLoginStatus }) => {
         <h2 className="text-center text-dark">Login</h2>
         <form onSubmit={handleLogin}>
           <div className="mb-3">
-            <label className="form-label">User ID</label>
+            <label className="form-label">Email ID</label>
             <input
               type="text"
               className="form-control"
-              value={userId}
+              value={emailId}
               onChange={(e) => setUserId(e.target.value)}
               required
             />
