@@ -120,6 +120,7 @@ const ViewTraining = () => {
             <th>Start Date</th>
             <th>End Date</th>
             <th>Status</th>
+            <th>Action</th>
           </tr>
         </thead>
         <tbody>
@@ -132,11 +133,16 @@ const ViewTraining = () => {
                 <td>{new Date(training.startDate).toLocaleDateString()}</td>
                 <td>{new Date(training.endDate).toLocaleDateString()}</td>
                 <td>{training.status}</td>
+                <td>
+                  <Button className='view-taining-btn'>
+                    View
+                  </Button>
+                </td>
               </tr>
             ))
           ) : (
             <tr>
-              <td colSpan="6" className="text-center">
+              <td colSpan="7" className="text-center">
                 No trainings available.
               </td>
             </tr>
