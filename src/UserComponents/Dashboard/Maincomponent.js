@@ -126,7 +126,7 @@ const Maincomponent = () => {
         ☰
       </button>
       
-      <h2 className="me-3" style={{ marginRight: "20px" }}>CBS</h2> 
+      <h2 className="me-3" style={{ marginRight: "20px" }}>TMS</h2> 
       
       <Button
         onClick={() => setActiveSection("dashboard")}

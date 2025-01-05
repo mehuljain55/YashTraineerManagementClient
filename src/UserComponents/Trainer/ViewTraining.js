@@ -1,90 +1,117 @@
 import React, { useState, useEffect } from 'react';
-import { Button, Modal, Form, Table } from 'react-bootstrap';
+import { Button, Modal, Form, Table, Dropdown } from 'react-bootstrap';
 import axios from 'axios';
 import API_BASE_URL from "../Config/Config";
-import { FaCheckCircle, FaTimesCircle, FaExclamationTriangle, FaInfoCircle } from 'react-icons/fa';
-import ShowStatus from "../StatusModel/ShowStatus"
-import './ViewTraining.css'; // Optional custom CSS for styling
-
+import ShowStatus from "../StatusModel/ShowStatus";
+import './ViewTraining.css';
 
 const ViewTraining = () => {
   const [trainings, setTrainings] = useState([]);
   const [showModal, setShowModal] = useState(false);
+  const [selectedStatus, setSelectedStatus] = useState("PLANNED");
   const [newTraining, setNewTraining] = useState({
     noOfParticipant: '',
     description: '',
     startDate: '',
-    endDate: ''
+    endDate: '',
   });
   const [statusResponse, setStatusResponse] = useState(null);
   const [message, setMessage] = useState('');
 
-  // Fetch training data
   useEffect(() => {
-    axios.get(`${API_BASE_URL}/training/trainings`)
+    fetchTrainings();  // Fetch trainings initially with the default status
+  }, [selectedStatus]);  // Fetch data when selectedStatus changes
+
+  const fetchTrainings = () => {
+    const token = sessionStorage.getItem("token");
+    const user = JSON.parse(sessionStorage.getItem("user"));
+
+    if (user && token) {
+      // Send selected status directly as a string to backend
+      axios.post(`${API_BASE_URL}/training/viewTrainingListByEmailAndStatus`, {
+        token: token,  // Send token directly
+        user: user,  // Send user data directly
+        trainingStatus: selectedStatus,  // Send selected status as a string
+      })
       .then((response) => {
-        setTrainings(response.data);
+        console.log("API Response:", response.data);
+        const trainingList = Array.isArray(response.data.payload) ? response.data.payload : [];
+        setTrainings(trainingList);
+        console.log(trainings);
       })
       .catch((error) => {
-        console.error('Error fetching training data:', error);
+        console.error("Error fetching training data:", error);
+        setTrainings([]);  // Handle error by resetting trainings
       });
-  }, []);
+    } else {
+      console.error("User or Token not found in session storage");
+      setTrainings([]);  // Handle missing user or token
+    }
+  };
 
-  // Handle form input change
+  const handleStatusSelect = (status) => {
+    setSelectedStatus(status);  // Update the selected status on dropdown select
+  };
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setNewTraining((prevTraining) => ({
       ...prevTraining,
-      [name]: value
+      [name]: value,
     }));
   };
 
-
-  // Handle adding new training
   const handleAddTraining = () => {
     const token = sessionStorage.getItem("token");
     const user = JSON.parse(sessionStorage.getItem("user"));
 
-
     if (user && token) {
       axios.post(`${API_BASE_URL}/training/addNewTraining`, {
-        user: user,
-        token:token,
-        training: newTraining
+        token: token,  
+        user: user,  
+        training: newTraining, 
       })
       .then((response) => {
-        setTrainings([...trainings, response.data]);
-        setStatusResponse('success');
-        setMessage('Training created successfully!');
-        setShowModal(false);
+       fetchTrainings();
+       setShowModal(false);
       })
       .catch((error) => {
         setStatusResponse('failed');
         setMessage('Error creating training.');
-        console.error('Error adding training:', error);
+        console.error("Error adding training:", error);
       });
     } else {
       setStatusResponse('unauthorized');
       setMessage('Unauthorized access.');
-      console.error('User or Token not found in session storage');
+      console.error("User or Token not found in session storage");
     }
   };
 
   return (
     <div>
-      {/* ShowStatus Component for Status Messages */}
-      {statusResponse && <ShowStatus statusResponse={statusResponse} message={message} onClose={() => setStatusResponse(null)} />}
+      {statusResponse && (
+        <ShowStatus
+          statusResponse={statusResponse}
+          message={message}
+          onClose={() => setStatusResponse(null)}
+        />
+      )}
 
-      <Button
-        variant="primary"
-        className="create-training-button"  // Apply custom class for button
-        onClick={() => setShowModal(true)}
-      >
-        Create Training
-      </Button>
+      <div className="d-flex justify-content-between align-items-center">
+        <h3>Training List</h3>
+        <Dropdown onSelect={handleStatusSelect}>
+          <Dropdown.Toggle variant="success" id="dropdown-basic">
+            {selectedStatus}
+          </Dropdown.Toggle>
+          <Dropdown.Menu>
+            <Dropdown.Item eventKey="PLANNED">Planned</Dropdown.Item>
+            <Dropdown.Item eventKey="INPROGRESS">In Progress</Dropdown.Item>
+            <Dropdown.Item eventKey="COMPLETED">Completed</Dropdown.Item>
+          </Dropdown.Menu>
+        </Dropdown>
+      </div>
 
-      <h3>Training List</h3>
-      <Table striped bordered hover className="training-table">  {/* Apply custom class for table */}
+      <Table striped bordered hover className="training-table">
         <thead>
           <tr>
             <th>Training ID</th>
@@ -92,27 +119,44 @@ const ViewTraining = () => {
             <th>Description</th>
             <th>Start Date</th>
             <th>End Date</th>
+            <th>Status</th>
           </tr>
         </thead>
         <tbody>
-          {trainings.map((training) => (
-            <tr key={training.trainingId}>
-              <td>{training.trainingId}</td>
-              <td>{training.noOfParticipant}</td>
-              <td>{training.description}</td>
-              <td>{new Date(training.startDate).toLocaleDateString()}</td>
-              <td>{new Date(training.endDate).toLocaleDateString()}</td>
+          {Array.isArray(trainings) && trainings.length > 0 ? (
+            trainings.map((training) => (
+              <tr key={training.trainingId}>
+                <td>{training.trainingId}</td>
+                <td>{training.noOfParticipant}</td>
+                <td>{training.description}</td>
+                <td>{new Date(training.startDate).toLocaleDateString()}</td>
+                <td>{new Date(training.endDate).toLocaleDateString()}</td>
+                <td>{training.status}</td>
+              </tr>
+            ))
+          ) : (
+            <tr>
+              <td colSpan="6" className="text-center">
+                No trainings available.
+              </td>
             </tr>
-          ))}
+          )}
         </tbody>
       </Table>
 
-      {/* Modal for Adding Training */}
+      <Button
+        variant="primary"
+        className="create-training-button"
+        onClick={() => setShowModal(true)}
+      >
+        Create Training
+      </Button>
+
       <Modal show={showModal} onHide={() => setShowModal(false)}>
-        <Modal.Header closeButton className="modal-header">
+        <Modal.Header closeButton>
           <Modal.Title>Add New Training</Modal.Title>
         </Modal.Header>
-        <Modal.Body className="modal-body">
+        <Modal.Body>
           <Form>
             <Form.Group controlId="formNoOfParticipants">
               <Form.Label>No of Participants</Form.Label>
@@ -152,7 +196,7 @@ const ViewTraining = () => {
             </Form.Group>
           </Form>
         </Modal.Body>
-        <Modal.Footer className="modal-footer">
+        <Modal.Footer>
           <Button variant="secondary" onClick={() => setShowModal(false)}>
             Close
           </Button>
