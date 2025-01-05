@@ -3,6 +3,7 @@ import { Button, Modal, Form, Table, Dropdown } from 'react-bootstrap';
 import axios from 'axios';
 import API_BASE_URL from "../Config/Config";
 import ShowStatus from "../StatusModel/ShowStatus";
+import DailySchedule from './DailySchedule';  // Import the DailyScheduleContainer
 import './ViewTraining.css';
 
 const ViewTraining = () => {
@@ -17,6 +18,7 @@ const ViewTraining = () => {
   });
   const [statusResponse, setStatusResponse] = useState(null);
   const [message, setMessage] = useState('');
+  const [selectedTraining, setSelectedTraining] = useState(null);  // Track selected training for viewing
 
   useEffect(() => {
     fetchTrainings();  // Fetch trainings initially with the default status
@@ -87,6 +89,12 @@ const ViewTraining = () => {
     }
   };
 
+  // Handle "View" button click
+  const handleViewTraining = (training) => {
+    setSelectedTraining(training);
+    setShowModal(true);  // Show the modal with the DailyScheduleContainer
+  };
+
   return (
     <div>
       {statusResponse && (
@@ -134,7 +142,7 @@ const ViewTraining = () => {
                 <td>{new Date(training.endDate).toLocaleDateString()}</td>
                 <td>{training.status}</td>
                 <td>
-                  <Button className='view-taining-btn'>
+                  <Button className='view-taining-btn' onClick={() => handleViewTraining(training)}>
                     View
                   </Button>
                 </td>
@@ -158,59 +166,28 @@ const ViewTraining = () => {
         Create Training
       </Button>
 
-      <Modal show={showModal} onHide={() => setShowModal(false)}>
+      {/* Modal for View Training with Daily Schedule */}
+      <Modal show={showModal} onHide={() => setShowModal(false)} size="lg">
         <Modal.Header closeButton>
-          <Modal.Title>Add New Training</Modal.Title>
+          <Modal.Title>Training Schedule for {selectedTraining ? selectedTraining.trainingId : ''}</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          <Form>
-            <Form.Group controlId="formNoOfParticipants">
-              <Form.Label>No of Participants</Form.Label>
-              <Form.Control
-                type="number"
-                name="noOfParticipant"
-                value={newTraining.noOfParticipant}
-                onChange={handleChange}
-              />
-            </Form.Group>
-            <Form.Group controlId="formDescription">
-              <Form.Label>Description</Form.Label>
-              <Form.Control
-                type="text"
-                name="description"
-                value={newTraining.description}
-                onChange={handleChange}
-              />
-            </Form.Group>
-            <Form.Group controlId="formStartDate">
-              <Form.Label>Start Date</Form.Label>
-              <Form.Control
-                type="date"
-                name="startDate"
-                value={newTraining.startDate}
-                onChange={handleChange}
-              />
-            </Form.Group>
-            <Form.Group controlId="formEndDate">
-              <Form.Label>End Date</Form.Label>
-              <Form.Control
-                type="date"
-                name="endDate"
-                value={newTraining.endDate}
-                onChange={handleChange}
-              />
-            </Form.Group>
-          </Form>
+          {/* Pass necessary props to DailyScheduleContainer */}
+          {selectedTraining && (
+            <DailySchedule 
+              trainingId={selectedTraining.trainingId}
+              startDate={selectedTraining.startDate}
+              endDate={selectedTraining.endDate}
+            />
+          )}
         </Modal.Body>
         <Modal.Footer>
           <Button variant="secondary" onClick={() => setShowModal(false)}>
             Close
           </Button>
-          <Button variant="primary" onClick={handleAddTraining}>
-            Save Training
-          </Button>
         </Modal.Footer>
       </Modal>
+
     </div>
   );
 };
