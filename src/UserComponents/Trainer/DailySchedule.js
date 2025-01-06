@@ -3,7 +3,7 @@ import axios from 'axios';
 import { Button, Table, Form } from 'react-bootstrap';
 import API_BASE_URL from "../Config/Config"; // Replace with actual config path
 
-const DailySchedule = ({ trainingId, startDate, endDate }) => {
+const DailySchedule = ({ trainingId }) => {
   const [dailySchedules, setDailySchedules] = useState([]);
   const [currentWeek, setCurrentWeek] = useState(0); // Keep track of the current week in pagination
   const [totalWeeks, setTotalWeeks] = useState(0); // Total weeks for pagination
@@ -12,7 +12,7 @@ const DailySchedule = ({ trainingId, startDate, endDate }) => {
 
   useEffect(() => {
     fetchDailySchedule();
-  }, [trainingId, startDate, endDate]);
+  }, [trainingId]);
 
   // Fetch the daily schedule from the API
   const fetchDailySchedule = () => {
@@ -27,8 +27,30 @@ const DailySchedule = ({ trainingId, startDate, endDate }) => {
       })
       .then((response) => {
         const fetchedSchedules = response.data.payload || [];
-        setDailySchedules(fetchedSchedules);
-        setTotalWeeks(fetchedSchedules.length ? Math.ceil(fetchedSchedules.length / 7) : 0); // Assume 7 days/week
+
+        // Group schedules by weekScheduleId
+        const groupedSchedules = fetchedSchedules.reduce((acc, schedule) => {
+          const { weekScheduleId } = schedule;
+          if (!acc[weekScheduleId]) {
+            acc[weekScheduleId] = [];
+          }
+          acc[weekScheduleId].push(schedule);
+          return acc;
+        }, {});
+
+        // Sort each group by date in ascending order
+        for (const weekId in groupedSchedules) {
+          groupedSchedules[weekId].sort((a, b) => new Date(a.date) - new Date(b.date));
+        }
+
+        // Convert groupedSchedules object into an array of weeks
+        const weeksArray = Object.entries(groupedSchedules).map(([weekScheduleId, schedules]) => ({
+          weekScheduleId,
+          schedules
+        }));
+
+        setDailySchedules(weeksArray);
+        setTotalWeeks(weeksArray.length); // Set total weeks
       })
       .catch((error) => {
         console.error("Error fetching daily schedule:", error);
@@ -43,9 +65,14 @@ const DailySchedule = ({ trainingId, startDate, endDate }) => {
   // Handle changes in the description field
   const handleDescriptionChange = (e, sno) => {
     const { value } = e.target;
-    setDailySchedules(prevSchedules =>
-      prevSchedules.map(schedule =>
-        schedule.sno === sno ? { ...schedule, description: value } : schedule
+    setDailySchedules(prevWeeks =>
+      prevWeeks.map(week =>
+        ({
+          ...week,
+          schedules: week.schedules.map(schedule =>
+            schedule.sno === sno ? { ...schedule, description: value } : schedule
+          )
+        })
       )
     );
   };
@@ -53,15 +80,20 @@ const DailySchedule = ({ trainingId, startDate, endDate }) => {
   // Handle changes in the trainer attendance dropdown
   const handleAttendanceChange = (e, sno) => {
     const { value } = e.target;
-    setDailySchedules(prevSchedules =>
-      prevSchedules.map(schedule =>
-        schedule.sno === sno
-          ? {
-              ...schedule,
-              trainerAttendance: value,
-              description: value === 'LEAVE' ? '' : schedule.description
-            }
-          : schedule
+    setDailySchedules(prevWeeks =>
+      prevWeeks.map(week =>
+        ({
+          ...week,
+          schedules: week.schedules.map(schedule =>
+            schedule.sno === sno
+              ? {
+                  ...schedule,
+                  trainerAttendance: value,
+                  description: value === 'LEAVE' ? '' : schedule.description
+                }
+              : schedule
+          )
+        })
       )
     );
   };
@@ -79,11 +111,13 @@ const DailySchedule = ({ trainingId, startDate, endDate }) => {
     const token = sessionStorage.getItem("token");
     const user = JSON.parse(sessionStorage.getItem("user"));
 
-    const dataToSubmit = dailySchedules.map((schedule) => ({
-      sno: schedule.sno,
-      description: schedule.description || "",
-      trainerAttendance: schedule.trainerAttendance || "PRESENT",
-    }));
+    const dataToSubmit = dailySchedules.flatMap((week) =>
+      week.schedules.map((schedule) => ({
+        sno: schedule.sno,
+        description: schedule.description || "",
+        trainerAttendance: schedule.trainerAttendance || "PRESENT",
+      }))
+    );
 
     if (user && token) {
       axios.post(`${API_BASE_URL}/training/updateDailySchedule`, {
@@ -107,10 +141,8 @@ const DailySchedule = ({ trainingId, startDate, endDate }) => {
     }
   };
 
-  // Filter schedules for the current week
-  const weekSchedules = dailySchedules.slice(currentWeek * 5, (currentWeek + 1) * 5);
+  const weekSchedules = dailySchedules[currentWeek]?.schedules || [];
 
-  
   return (
     <div>
       {statusResponse && (
@@ -126,7 +158,7 @@ const DailySchedule = ({ trainingId, startDate, endDate }) => {
         <Button onClick={() => handlePagination(-1)} disabled={currentWeek === 0}>
           Previous Week
         </Button>
-        <span>Week {currentWeek + 1} of {Math.ceil(totalWeeks)}</span>
+        <span>Week {currentWeek + 1} of {totalWeeks}</span>
         <Button onClick={() => handlePagination(1)} disabled={currentWeek >= totalWeeks - 1}>
           Next Week
         </Button>
@@ -181,7 +213,7 @@ const DailySchedule = ({ trainingId, startDate, endDate }) => {
 
       {/* Submit button */}
       <Button variant="primary" onClick={handleSubmit}>
-       Update
+        Update
       </Button>
     </div>
   );
