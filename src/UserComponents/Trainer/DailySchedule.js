@@ -145,6 +145,7 @@ const DailySchedule = ({ trainingId }) => {
   };
 
   const weekSchedules = dailySchedules[currentWeek]?.schedules || [];
+  const currentWeekId = dailySchedules[currentWeek]?.weekScheduleId || '';
 
   return (
     <div>
@@ -153,6 +154,11 @@ const DailySchedule = ({ trainingId }) => {
           <span>{message}</span>
         </div>
       )}
+
+      {/* Display Week ID */}
+      <div className="week-id-display" style={{ fontSize: '20px', fontWeight: 'bold' }}>
+        Week ID: {currentWeekId}
+      </div>
 
       <h3>Daily Schedule for Training ID: {trainingId}</h3>
 
