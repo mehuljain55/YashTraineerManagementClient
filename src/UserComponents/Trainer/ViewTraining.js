@@ -9,6 +9,7 @@ import './ViewTraining.css';
 const ViewTraining = () => {
   const [trainings, setTrainings] = useState([]);
   const [showModal, setShowModal] = useState(false);
+  const [showCreateModal, setShowCreateModal] = useState(false);  // State for create modal
   const [selectedStatus, setSelectedStatus] = useState("PLANNED");
   const [newTraining, setNewTraining] = useState({
     noOfParticipant: '',
@@ -75,7 +76,7 @@ const ViewTraining = () => {
       })
       .then((response) => {
        fetchTrainings();
-       setShowModal(false);
+       setShowCreateModal(false);  // Close create modal after successful creation
       })
       .catch((error) => {
         setStatusResponse('failed');
@@ -161,7 +162,7 @@ const ViewTraining = () => {
       <Button
         variant="primary"
         className="create-training-button"
-        onClick={() => setShowModal(true)}
+        onClick={() => setShowCreateModal(true)}  // Open create training modal
       >
         Create Training
       </Button>
@@ -184,6 +185,66 @@ const ViewTraining = () => {
         <Modal.Footer>
           <Button variant="secondary" onClick={() => setShowModal(false)}>
             Close
+          </Button>
+        </Modal.Footer>
+      </Modal>
+
+      {/* Modal for Creating New Training */}
+      <Modal show={showCreateModal} onHide={() => setShowCreateModal(false)}>
+        <Modal.Header closeButton>
+          <Modal.Title>Create New Training</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <Form>
+            <Form.Group controlId="formNoOfParticipants">
+              <Form.Label>No of Participants</Form.Label>
+              <Form.Control 
+                type="number" 
+                placeholder="Enter number of participants"
+                name="noOfParticipant"
+                value={newTraining.noOfParticipant}
+                onChange={handleChange}
+              />
+            </Form.Group>
+
+            <Form.Group controlId="formDescription">
+              <Form.Label>Description</Form.Label>
+              <Form.Control 
+                type="text" 
+                placeholder="Enter description"
+                name="description"
+                value={newTraining.description}
+                onChange={handleChange}
+              />
+            </Form.Group>
+
+            <Form.Group controlId="formStartDate">
+              <Form.Label>Start Date</Form.Label>
+              <Form.Control 
+                type="date" 
+                name="startDate"
+                value={newTraining.startDate}
+                onChange={handleChange}
+              />
+            </Form.Group>
+
+            <Form.Group controlId="formEndDate">
+              <Form.Label>End Date</Form.Label>
+              <Form.Control 
+                type="date" 
+                name="endDate"
+                value={newTraining.endDate}
+                onChange={handleChange}
+              />
+            </Form.Group>
+          </Form>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShowCreateModal(false)}>
+            Close
+          </Button>
+          <Button variant="primary" onClick={handleAddTraining}>
+            Create Training
           </Button>
         </Modal.Footer>
       </Modal>
