@@ -110,6 +110,7 @@ const DailySchedule = ({ trainingId, startDate, endDate }) => {
   // Filter schedules for the current week
   const weekSchedules = dailySchedules.slice(currentWeek * 5, (currentWeek + 1) * 5);
 
+  
   return (
     <div>
       {statusResponse && (
