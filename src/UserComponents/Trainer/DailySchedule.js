@@ -38,16 +38,19 @@ const DailySchedule = ({ trainingId }) => {
           return acc;
         }, {});
 
-        // Sort each group by date in ascending order
+        // Sort schedules within each week by date
         for (const weekId in groupedSchedules) {
           groupedSchedules[weekId].sort((a, b) => new Date(a.date) - new Date(b.date));
         }
 
-        // Convert groupedSchedules object into an array of weeks
+        // Create an array of weeks, each containing its schedules
         const weeksArray = Object.entries(groupedSchedules).map(([weekScheduleId, schedules]) => ({
           weekScheduleId,
           schedules
         }));
+
+        // Sort the weeks by the first entry's date (ascending order)
+        weeksArray.sort((a, b) => new Date(a.schedules[0].date) - new Date(b.schedules[0].date));
 
         setDailySchedules(weeksArray);
         setTotalWeeks(weeksArray.length); // Set total weeks
