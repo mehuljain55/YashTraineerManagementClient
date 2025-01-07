@@ -4,6 +4,7 @@ import {  Button, Dropdown } from 'react-bootstrap';
 
 import Dashboard from "../Trainer/Dashboard";
 import ViewTraining from "../Trainer/ViewTraining";
+import ViewTrainerSchedule from "../Trainer/ViewTrainerSchedule";
 import "bootstrap/dist/css/bootstrap.min.css";
 
 
@@ -36,6 +37,13 @@ const Maincomponent = () => {
             <ViewTraining />
           </div>
         );
+
+        case "ViewTrainerSchedule":
+          return (
+            <div>
+              <ViewTrainerSchedule />
+            </div>
+          );
            
       default:
         return (
@@ -91,13 +99,26 @@ const Maincomponent = () => {
                 <li>
                   <button
                     className={`btn btn-link text-decoration-none w-100 text-start ${
-                      activeSection === "cabinRequest"
+                      activeSection === "ViewTraining"
                         ? "fw-bold text-primary"
                         : "text-dark"
                     }`}
                     onClick={() => setActiveSection("ViewTraining")}
                   >
                     View Training
+                  </button>
+                </li>
+
+                <li>
+                  <button
+                    className={`btn btn-link text-decoration-none w-100 text-start ${
+                      activeSection === "ViewTrainerSchedule"
+                        ? "fw-bold text-primary"
+                        : "text-dark"
+                    }`}
+                    onClick={() => setActiveSection("ViewTrainerSchedule")}
+                  >
+                  View Trainer Schedule
                   </button>
                 </li>
                

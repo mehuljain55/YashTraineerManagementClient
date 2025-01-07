@@ -3,97 +3,96 @@ import { Button, Modal, Form, Table, Dropdown } from 'react-bootstrap';
 import axios from 'axios';
 import API_BASE_URL from "../Config/Config";
 import ShowStatus from "../StatusModel/ShowStatus";
-import DailySchedule from './DailySchedule';  // Import the DailyScheduleContainer
+import DailySchedule from './DailySchedule';  
 import './ViewTraining.css';
 
 const ViewTraining = () => {
   const [trainings, setTrainings] = useState([]);
+  const [updatedTrainings, setUpdatedTrainings] = useState({});
   const [showModal, setShowModal] = useState(false);
-  const [showCreateModal, setShowCreateModal] = useState(false);  // State for create modal
   const [selectedStatus, setSelectedStatus] = useState("PLANNED");
-  const [newTraining, setNewTraining] = useState({
-    noOfParticipant: '',
-    description: '',
-    startDate: '',
-    endDate: '',
-  });
+  const [selectedTraining, setSelectedTraining] = useState(null);
   const [statusResponse, setStatusResponse] = useState(null);
   const [message, setMessage] = useState('');
-  const [selectedTraining, setSelectedTraining] = useState(null);  // Track selected training for viewing
 
   useEffect(() => {
-    fetchTrainings();  // Fetch trainings initially with the default status
-  }, [selectedStatus]);  // Fetch data when selectedStatus changes
+    fetchTrainings();
+  }, [selectedStatus]);
 
   const fetchTrainings = () => {
     const token = sessionStorage.getItem("token");
     const user = JSON.parse(sessionStorage.getItem("user"));
 
     if (user && token) {
-      // Send selected status directly as a string to backend
       axios.post(`${API_BASE_URL}/training/viewTrainingListByEmailAndStatus`, {
-        token: token,  // Send token directly
-        user: user,  // Send user data directly
-        trainingStatus: selectedStatus,  // Send selected status as a string
+        token,
+        user,
+        trainingStatus: selectedStatus
       })
       .then((response) => {
-        console.log("API Response:", response.data);
         const trainingList = Array.isArray(response.data.payload) ? response.data.payload : [];
         setTrainings(trainingList);
-        console.log(trainings);
       })
       .catch((error) => {
         console.error("Error fetching training data:", error);
-        setTrainings([]);  // Handle error by resetting trainings
+        setTrainings([]);
       });
     } else {
       console.error("User or Token not found in session storage");
-      setTrainings([]);  // Handle missing user or token
+      setTrainings([]);
     }
   };
 
-  const handleStatusSelect = (status) => {
-    setSelectedStatus(status);  // Update the selected status on dropdown select
-  };
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setNewTraining((prevTraining) => ({
-      ...prevTraining,
-      [name]: value,
+  const handleStatusChange = (trainingId, newStatus) => {
+    setUpdatedTrainings((prev) => ({
+      ...prev,
+      [trainingId]: newStatus
     }));
+
+    setTrainings((prev) => 
+      prev.map((training) => 
+        training.trainingId === trainingId 
+          ? { ...training, status: newStatus } 
+          : training
+      )
+    );
   };
 
-  const handleAddTraining = () => {
+  const handleUpdateTrainings = () => {
     const token = sessionStorage.getItem("token");
     const user = JSON.parse(sessionStorage.getItem("user"));
 
+    const updatedTrainingList = Object.entries(updatedTrainings).map(([id, status]) => ({
+      trainingId: id,
+      status
+    }));
+
     if (user && token) {
-      axios.post(`${API_BASE_URL}/training/addNewTraining`, {
-        token: token,  
-        user: user,  
-        training: newTraining, 
+      axios.post(`${API_BASE_URL}/training/updateTrainingStatus`, {
+        token,
+        user,
+        trainingList: updatedTrainingList
       })
-      .then((response) => {
-       fetchTrainings();
-       setShowCreateModal(false);  // Close create modal after successful creation
+      .then(() => {
+        setStatusResponse('success');
+        setMessage('Training statuses updated successfully.');
+        setUpdatedTrainings({});
+        fetchTrainings();
       })
       .catch((error) => {
         setStatusResponse('failed');
-        setMessage('Error creating training.');
-        console.error("Error adding training:", error);
+        setMessage('Error updating training statuses.');
+        console.error("Error updating training statuses:", error);
       });
     } else {
       setStatusResponse('unauthorized');
       setMessage('Unauthorized access.');
-      console.error("User or Token not found in session storage");
     }
   };
 
-  // Handle "View" button click
   const handleViewTraining = (training) => {
     setSelectedTraining(training);
-    setShowModal(true);  // Show the modal with the DailyScheduleContainer
+    setShowModal(true);
   };
 
   return (
@@ -108,7 +107,7 @@ const ViewTraining = () => {
 
       <div className="d-flex justify-content-between align-items-center">
         <h3>Training List</h3>
-        <Dropdown onSelect={handleStatusSelect}>
+        <Dropdown onSelect={setSelectedStatus}>
           <Dropdown.Toggle variant="success" id="dropdown-basic">
             {selectedStatus}
           </Dropdown.Toggle>
@@ -141,7 +140,18 @@ const ViewTraining = () => {
                 <td>{training.description}</td>
                 <td>{new Date(training.startDate).toLocaleDateString()}</td>
                 <td>{new Date(training.endDate).toLocaleDateString()}</td>
-                <td>{training.status}</td>
+                <td>
+                  <Dropdown onSelect={(status) => handleStatusChange(training.trainingId, status)}>
+                    <Dropdown.Toggle variant="info" id="dropdown-basic">
+                      {training.status}
+                    </Dropdown.Toggle>
+                    <Dropdown.Menu>
+                      <Dropdown.Item eventKey="PLANNED">Planned</Dropdown.Item>
+                      <Dropdown.Item eventKey="INPROGRESS">In Progress</Dropdown.Item>
+                      <Dropdown.Item eventKey="COMPLETED">Completed</Dropdown.Item>
+                    </Dropdown.Menu>
+                  </Dropdown>
+                </td>
                 <td>
                   <Button className='view-taining-btn' onClick={() => handleViewTraining(training)}>
                     View
@@ -161,10 +171,9 @@ const ViewTraining = () => {
 
       <Button
         variant="primary"
-        className="create-training-button"
-        onClick={() => setShowCreateModal(true)}  // Open create training modal
-      >
-        Create Training
+        onClick={handleUpdateTrainings}
+        disabled={Object.keys(updatedTrainings).length === 0}>
+        Update Trainings
       </Button>
 
       <Modal show={showModal} onHide={() => setShowModal(false)} size="lg">
@@ -186,66 +195,6 @@ const ViewTraining = () => {
           </Button>
         </Modal.Footer>
       </Modal>
-
-      <Modal show={showCreateModal} onHide={() => setShowCreateModal(false)}>
-        <Modal.Header closeButton>
-          <Modal.Title>Create New Training</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          <Form>
-            <Form.Group controlId="formNoOfParticipants">
-              <Form.Label>No of Participants</Form.Label>
-              <Form.Control 
-                type="number" 
-                placeholder="Enter number of participants"
-                name="noOfParticipant"
-                value={newTraining.noOfParticipant}
-                onChange={handleChange}
-              />
-            </Form.Group>
-
-            <Form.Group controlId="formDescription">
-              <Form.Label>Description</Form.Label>
-              <Form.Control 
-                type="text" 
-                placeholder="Enter description"
-                name="description"
-                value={newTraining.description}
-                onChange={handleChange}
-              />
-            </Form.Group>
-
-            <Form.Group controlId="formStartDate">
-              <Form.Label>Start Date</Form.Label>
-              <Form.Control 
-                type="date" 
-                name="startDate"
-                value={newTraining.startDate}
-                onChange={handleChange}
-              />
-            </Form.Group>
-
-            <Form.Group controlId="formEndDate">
-              <Form.Label>End Date</Form.Label>
-              <Form.Control 
-                type="date" 
-                name="endDate"
-                value={newTraining.endDate}
-                onChange={handleChange}
-              />
-            </Form.Group>
-          </Form>
-        </Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={() => setShowCreateModal(false)}>
-            Close
-          </Button>
-          <Button variant="primary" onClick={handleAddTraining}>
-            Create Training
-          </Button>
-        </Modal.Footer>
-      </Modal>
-
     </div>
   );
 };
