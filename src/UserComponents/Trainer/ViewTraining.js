@@ -167,13 +167,11 @@ const ViewTraining = () => {
         Create Training
       </Button>
 
-      {/* Modal for View Training with Daily Schedule */}
       <Modal show={showModal} onHide={() => setShowModal(false)} size="lg">
         <Modal.Header closeButton>
           <Modal.Title>Training Schedule for {selectedTraining ? selectedTraining.trainingId : ''}</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          {/* Pass necessary props to DailyScheduleContainer */}
           {selectedTraining && (
             <DailySchedule 
               trainingId={selectedTraining.trainingId}
@@ -189,7 +187,6 @@ const ViewTraining = () => {
         </Modal.Footer>
       </Modal>
 
-      {/* Modal for Creating New Training */}
       <Modal show={showCreateModal} onHide={() => setShowCreateModal(false)}>
         <Modal.Header closeButton>
           <Modal.Title>Create New Training</Modal.Title>
