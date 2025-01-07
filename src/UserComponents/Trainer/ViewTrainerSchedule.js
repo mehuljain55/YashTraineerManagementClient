@@ -12,7 +12,6 @@ const ViewTrainerSchedule = () => {
   const [token, setToken] = useState(sessionStorage.getItem('token'));
   const [user, setUser] = useState(JSON.parse(sessionStorage.getItem('user')));
 
-  // Fetch today's schedule on load
   useEffect(() => {
     const today = new Date().toISOString().split('T')[0];
     fetchSchedule(today, today);
@@ -52,7 +51,6 @@ const ViewTrainerSchedule = () => {
     fetchSchedule(startDate, endDate);
   };
 
-  // Format date as dd/mm/yyyy
   const formatDate = (dateString) => {
     const date = new Date(dateString);
     const day = String(date.getDate()).padStart(2, '0');

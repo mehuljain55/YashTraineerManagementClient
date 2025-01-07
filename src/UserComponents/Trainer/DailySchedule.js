@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Button, Table, Form } from 'react-bootstrap';
-import API_BASE_URL from "../Config/Config"; // Replace with actual config path
+import API_BASE_URL from "../Config/Config"; 
 
 const DailySchedule = ({ trainingId }) => {
   const [dailySchedules, setDailySchedules] = useState([]);
-  const [currentWeek, setCurrentWeek] = useState(0); // Keep track of the current week in pagination
-  const [totalWeeks, setTotalWeeks] = useState(0); // Total weeks for pagination
+  const [currentWeek, setCurrentWeek] = useState(0); 
+  const [totalWeeks, setTotalWeeks] = useState(0); 
   const [statusResponse, setStatusResponse] = useState(null);
   const [message, setMessage] = useState('');
 
@@ -14,7 +14,6 @@ const DailySchedule = ({ trainingId }) => {
     fetchDailySchedule();
   }, [trainingId]);
 
-  // Fetch the daily schedule from the API
   const fetchDailySchedule = () => {
     const token = sessionStorage.getItem("token");
     const user = JSON.parse(sessionStorage.getItem("user"));
@@ -28,7 +27,6 @@ const DailySchedule = ({ trainingId }) => {
       .then((response) => {
         const fetchedSchedules = response.data.payload || [];
 
-        // Group schedules by weekScheduleId
         const groupedSchedules = fetchedSchedules.reduce((acc, schedule) => {
           const { weekScheduleId } = schedule;
           if (!acc[weekScheduleId]) {
@@ -38,22 +36,19 @@ const DailySchedule = ({ trainingId }) => {
           return acc;
         }, {});
 
-        // Sort schedules within each week by date
         for (const weekId in groupedSchedules) {
           groupedSchedules[weekId].sort((a, b) => new Date(a.date) - new Date(b.date));
         }
 
-        // Create an array of weeks, each containing its schedules
         const weeksArray = Object.entries(groupedSchedules).map(([weekScheduleId, schedules]) => ({
           weekScheduleId,
           schedules
         }));
 
-        // Sort the weeks by the first entry's date (ascending order)
         weeksArray.sort((a, b) => new Date(a.schedules[0].date) - new Date(b.schedules[0].date));
 
         setDailySchedules(weeksArray);
-        setTotalWeeks(weeksArray.length); // Set total weeks
+        setTotalWeeks(weeksArray.length); 
       })
       .catch((error) => {
         console.error("Error fetching daily schedule:", error);
@@ -65,7 +60,6 @@ const DailySchedule = ({ trainingId }) => {
     }
   };
 
-  // Handle changes in the description field
   const handleDescriptionChange = (e, sno) => {
     const { value } = e.target;
     setDailySchedules(prevWeeks =>
@@ -80,7 +74,6 @@ const DailySchedule = ({ trainingId }) => {
     );
   };
 
-  // Handle changes in the trainer attendance dropdown
   const handleAttendanceChange = (e, sno) => {
     const { value } = e.target;
     setDailySchedules(prevWeeks =>
@@ -101,7 +94,6 @@ const DailySchedule = ({ trainingId }) => {
     );
   };
 
-  // Handle pagination
   const handlePagination = (direction) => {
     let newWeek = currentWeek + direction;
     if (newWeek < 0) newWeek = 0;
@@ -109,7 +101,6 @@ const DailySchedule = ({ trainingId }) => {
     setCurrentWeek(newWeek);
   };
 
-  // Submit the updated schedule descriptions
   const handleSubmit = () => {
     const token = sessionStorage.getItem("token");
     const user = JSON.parse(sessionStorage.getItem("user"));
@@ -129,9 +120,9 @@ const DailySchedule = ({ trainingId }) => {
         dailyScheduleList: dataToSubmit,
       })
       .then((response) => {
-        setStatusResponse('success');
-        setMessage('Schedules updated successfully!');
-        fetchDailySchedule(); // Refresh data
+        setStatusResponse(response.data.status);
+        setMessage(response.data.msg);
+        fetchDailySchedule(); 
       })
       .catch((error) => {
         setStatusResponse('failed');
@@ -155,14 +146,12 @@ const DailySchedule = ({ trainingId }) => {
         </div>
       )}
 
-      {/* Display Week ID */}
       <div className="week-id-display" style={{ fontSize: '20px', fontWeight: 'bold' }}>
         Week ID: {currentWeekId}
       </div>
 
       <h3>Daily Schedule for Training ID: {trainingId}</h3>
 
-      {/* Pagination buttons */}
       <div className="pagination-buttons">
         <Button onClick={() => handlePagination(-1)} disabled={currentWeek === 0}>
           Previous Week
@@ -220,7 +209,6 @@ const DailySchedule = ({ trainingId }) => {
         </tbody>
       </Table>
 
-      {/* Submit button */}
       <Button variant="primary" onClick={handleSubmit}>
         Update
       </Button>
