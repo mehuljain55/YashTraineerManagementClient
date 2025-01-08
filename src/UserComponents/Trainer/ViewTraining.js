@@ -21,6 +21,9 @@ const ViewTraining = () => {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [statusResponse, setStatusResponse] = useState(null);
   const [message, setMessage] = useState('');
+  const token = sessionStorage.getItem("token");
+  const user = JSON.parse(sessionStorage.getItem("user"));
+
 
   useEffect(() => {
     fetchTrainings();
@@ -66,9 +69,7 @@ const ViewTraining = () => {
   };
 
   const handleUpdateTrainings = () => {
-    const token = sessionStorage.getItem("token");
-    const user = JSON.parse(sessionStorage.getItem("user"));
-
+  
     const updatedTrainingList = Object.entries(updatedTrainings).map(([id, status]) => ({
       trainingId: id,
       status
@@ -97,6 +98,46 @@ const ViewTraining = () => {
     }
   };
 
+  const handleExportTraining = async () => {
+    try {
+     
+      if (trainings.length === 0) 
+      {
+         alert("Nothing to export");
+         return;
+      }
+
+      const exportModel = {
+        token,
+        user,
+        trainingList: trainings,
+      };
+
+      const response = await axios.post(`${API_BASE_URL}/export/trainingList`, exportModel, {
+        responseType: "blob", 
+      });
+
+  
+      if (response.status === 200) {
+        const blob = new Blob([response.data], {
+          type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "training_data.xlsx";
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+      } else {
+        alert("Failed to export training list. Please try again.");
+      }
+    } catch (error) {
+      console.error("Error exporting training list:", error);
+      alert("An error occurred while exporting the training list.");
+    }
+  };
+
   
   const handleAddTraining = () => {
     if (user && token) {
@@ -119,6 +160,34 @@ const ViewTraining = () => {
     }
   };
 
+  const handleDeleteTraining = async (trainingId) => {
+    const confirmDelete = window.confirm("Are you sure you want to delete this training?");
+    if (!confirmDelete) return;
+  
+    if (user && token) {
+      try {
+        const response = await axios.post(`${API_BASE_URL}/trainer/deleteTrainingByEmailandTrainingId`, {
+          token,
+          user,
+          trainingId,
+        });
+  
+        if (response.data.status === "success") {
+          alert("Training deleted successfully.");
+          fetchTrainings(); 
+        } else {
+          alert(response.data.message || "Failed to delete training.");
+        }
+      } catch (error) {
+        console.error("Error deleting training:", error);
+        alert("An error occurred while deleting the training.");
+      }
+    } else {
+      alert("Unauthorized access.");
+    }
+  };
+  
+  
   const handleViewTraining = (training) => {
     setSelectedTraining(training);
     setShowModal(true);
@@ -190,6 +259,12 @@ const ViewTraining = () => {
                   <Button className='view-taining-btn' onClick={() => handleViewTraining(training)}>
                     View
                   </Button>
+                  <Button
+    className="delete-training-btn"
+    variant="danger"
+    onClick={() => handleDeleteTraining(training.trainingId)}>
+    Delete
+  </Button>
                 </td>
               </tr>
             ))
@@ -233,6 +308,70 @@ const ViewTraining = () => {
         <Modal.Footer>
           <Button variant="secondary" onClick={() => setShowModal(false)}>
             Close
+          </Button>
+        </Modal.Footer>
+      </Modal>
+
+
+      <Modal show={showCreateModal} onHide={() => setShowCreateModal(false)}>
+        <Modal.Header closeButton>
+          <Modal.Title>Add New Training</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <Form>
+            
+            <Form.Group controlId="formParticipants">
+              <Form.Label>No. of Participants</Form.Label>
+              <Form.Control
+                type="number"
+                value={newTraining.noOfParticipant}
+                onChange={(e) =>
+                  setNewTraining({
+                    ...newTraining,
+                    noOfParticipant: parseInt(e.target.value),
+                  })
+                }
+              />
+            </Form.Group>
+            <Form.Group controlId="formDescription">
+              <Form.Label>Description</Form.Label>
+              <Form.Control
+                as="textarea"
+                rows={3}
+                value={newTraining.description}
+                onChange={(e) =>
+                  setNewTraining({ ...newTraining, description: e.target.value })
+                }
+              />
+            </Form.Group>
+            <Form.Group controlId="formStartDate">
+              <Form.Label>Start Date</Form.Label>
+              <Form.Control
+                type="date"
+                value={newTraining.startDate}
+                onChange={(e) =>
+                  setNewTraining({ ...newTraining, startDate: e.target.value })
+                }
+              />
+            </Form.Group>
+            <Form.Group controlId="formEndDate">
+              <Form.Label>End Date</Form.Label>
+              <Form.Control
+                type="date"
+                value={newTraining.endDate}
+                onChange={(e) =>
+                  setNewTraining({ ...newTraining, endDate: e.target.value })
+                }
+              />
+            </Form.Group>
+          </Form>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShowCreateModal(false)}>
+            Cancel
+          </Button>
+          <Button variant="primary" onClick={handleAddTraining}>
+            Add Training
           </Button>
         </Modal.Footer>
       </Modal>
