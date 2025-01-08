@@ -13,16 +13,24 @@ const ViewTraining = () => {
   const [selectedStatus, setSelectedStatus] = useState("PLANNED");
   const [selectedTraining, setSelectedTraining] = useState(null);
   const [statusResponse, setStatusResponse] = useState(null);
+  const [newTraining, setNewTraining] = useState({
+    description: '',
+    startDate: '',
+    endDate: '',
+    noOfParticipant: '',
+  });
+  const [showCreateModal, setShowCreateModal] = useState(false);
   const [message, setMessage] = useState('');
+  const token = sessionStorage.getItem("token");
+  const user = JSON.parse(sessionStorage.getItem("user"));
+
 
   useEffect(() => {
     fetchTrainings();
   }, [selectedStatus]);
 
   const fetchTrainings = () => {
-    const token = sessionStorage.getItem("token");
-    const user = JSON.parse(sessionStorage.getItem("user"));
-
+ 
     if (user && token) {
       axios.post(`${API_BASE_URL}/training/viewTrainingListByEmailAndStatus`, {
         token,
@@ -59,9 +67,7 @@ const ViewTraining = () => {
   };
 
   const handleUpdateTrainings = () => {
-    const token = sessionStorage.getItem("token");
-    const user = JSON.parse(sessionStorage.getItem("user"));
-
+ 
     const updatedTrainingList = Object.entries(updatedTrainings).map(([id, status]) => ({
       trainingId: id,
       status
@@ -90,9 +96,75 @@ const ViewTraining = () => {
     }
   };
 
+  const handleExportTraining = async () => {
+    try {
+     
+      if (trainings.length === 0) 
+      {
+         alert("Nothing to export");
+         return;
+      }
+
+      const exportModel = {
+        token,
+        user,
+        trainingList: trainings,
+      };
+
+      const response = await axios.post(`${API_BASE_URL}/export/trainingList`, exportModel, {
+        responseType: "blob", 
+      });
+
+  
+      if (response.status === 200) {
+        const blob = new Blob([response.data], {
+          type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "training_data.xlsx";
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+      } else {
+        alert("Failed to export training list. Please try again.");
+      }
+    } catch (error) {
+      console.error("Error exporting training list:", error);
+      alert("An error occurred while exporting the training list.");
+    }
+  };
+
   const handleViewTraining = (training) => {
     setSelectedTraining(training);
     setShowModal(true);
+  };
+
+  const handleAddTraining = () => {
+    const token = sessionStorage.getItem("token");
+    const user = JSON.parse(sessionStorage.getItem("user"));
+
+    if (user && token) {
+      axios.post(`${API_BASE_URL}/training/addNewTraining`, {
+        token: token,  
+        user: user,  
+        training: newTraining, 
+      })
+      .then((response) => {
+        fetchTrainings();
+        setShowCreateModal(false);  
+      })
+      .catch((error) => {
+        setStatusResponse('failed');
+        setMessage('Error creating training.');
+        console.error("Error adding training:", error);
+      });
+    } else {
+      setStatusResponse('unauthorized');
+      setMessage('Unauthorized access.');
+      console.error("User or Token not found in session storage");
+    }
   };
 
   return (
@@ -104,6 +176,10 @@ const ViewTraining = () => {
           onClose={() => setStatusResponse(null)}
         />
       )}
+
+<Button variant="success" onClick={() => setShowCreateModal(true)}>
+        Add Training
+      </Button>
 
       <div className="d-flex justify-content-between align-items-center">
         <h3>Training List</h3>
@@ -176,6 +252,13 @@ const ViewTraining = () => {
         Update Trainings
       </Button>
 
+      <Button
+        variant="primary"
+        onClick={handleExportTraining}
+        >
+        Export
+      </Button>
+
       <Modal show={showModal} onHide={() => setShowModal(false)} size="lg">
         <Modal.Header closeButton>
           <Modal.Title>Training Schedule for {selectedTraining ? selectedTraining.trainingId : ''}</Modal.Title>
@@ -192,6 +275,61 @@ const ViewTraining = () => {
         <Modal.Footer>
           <Button variant="secondary" onClick={() => setShowModal(false)}>
             Close
+          </Button>
+        </Modal.Footer>
+      </Modal>
+
+      <Modal show={showCreateModal} onHide={() => setShowCreateModal(false)} centered>
+        <Modal.Header closeButton>
+          <Modal.Title>Add New Training</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <Form>
+            <Form.Group>
+              <Form.Label>Description</Form.Label>
+              <Form.Control
+                type="text"
+                placeholder="Enter description"
+                value={newTraining.description}
+                onChange={(e) => setNewTraining({ ...newTraining, description: e.target.value })}
+              />
+            </Form.Group>
+
+            <Form.Group>
+              <Form.Label>Number of Participants</Form.Label>
+              <Form.Control
+                type="number"
+                placeholder="Enter number of participants"
+                value={newTraining.noOfParticipant}
+                onChange={(e) => setNewTraining({ ...newTraining, noOfParticipant: e.target.value })}
+              />
+            </Form.Group>
+
+            <Form.Group>
+              <Form.Label>Start Date</Form.Label>
+              <Form.Control
+                type="date"
+                value={newTraining.startDate}
+                onChange={(e) => setNewTraining({ ...newTraining, startDate: e.target.value })}
+              />
+            </Form.Group>
+            <Form.Group>
+              <Form.Label>End Date</Form.Label>
+              <Form.Control
+                type="date"
+                value={newTraining.endDate}
+                onChange={(e) => setNewTraining({ ...newTraining, endDate: e.target.value })}
+              />
+            </Form.Group>
+           
+          </Form>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShowCreateModal(false)}>
+            Cancel
+          </Button>
+          <Button variant="primary" onClick={handleAddTraining}>
+            Add Training
           </Button>
         </Modal.Footer>
       </Modal>
