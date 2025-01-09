@@ -6,6 +6,7 @@ import Dashboard from "../Trainer/Dashboard";
 import ViewTraining from "../Trainer/ViewTraining";
 import ViewTrainerSchedule from "../Trainer/ViewTrainerSchedule";
 import "bootstrap/dist/css/bootstrap.min.css";
+import AddDailySchedule from "../Trainer/AddDailySchedule";
 
 
 const Maincomponent = () => {
@@ -44,6 +45,13 @@ const Maincomponent = () => {
               <ViewTrainerSchedule />
             </div>
           );
+
+          case "AddDailySchedule":
+            return (
+              <div>
+                <AddDailySchedule />
+              </div>
+            );  
            
       default:
         return (
@@ -119,6 +127,19 @@ const Maincomponent = () => {
                     onClick={() => setActiveSection("ViewTrainerSchedule")}
                   >
                   View Trainer Schedule
+                  </button>
+                </li>
+
+                <li>
+                  <button
+                    className={`btn btn-link text-decoration-none w-100 text-start ${
+                      activeSection === "AddDailySchedule"
+                        ? "fw-bold text-primary"
+                        : "text-dark"
+                    }`}
+                    onClick={() => setActiveSection("AddDailySchedule")}
+                  >
+                 Add Daily Schedule
                   </button>
                 </li>
                
