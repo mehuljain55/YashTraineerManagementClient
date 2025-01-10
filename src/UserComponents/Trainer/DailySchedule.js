@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Button, Table, Form } from 'react-bootstrap';
 import API_BASE_URL from "../Config/Config"; 
+import './DailySchedule.css';
 
 const DailySchedule = ({ trainingId }) => {
   const [dailySchedules, setDailySchedules] = useState([]);
@@ -134,7 +135,7 @@ const DailySchedule = ({ trainingId }) => {
       })
       .then((response) => {
         setStatusResponse(response.data.status);
-        setMessage(response.data.msg);
+        setMessage(response.data.message);
         fetchDailySchedule(); 
       })
       .catch((error) => {
@@ -150,24 +151,85 @@ const DailySchedule = ({ trainingId }) => {
 
   const weekSchedules = dailySchedules[currentWeek]?.schedules || [];
   const currentWeekId = dailySchedules[currentWeek]?.weekScheduleId || '';
-
   return (
-    <div>
-      {statusResponse && (
-        <div className={`status-response ${statusResponse}`}>
-          <span>{message}</span>
-        </div>
-      )}
-
-      <div className="week-id-display" style={{ fontSize: '20px', fontWeight: 'bold' }}>
-        Week ID: {currentWeekId}
+    <div className="daily-schedule-container">
+    {statusResponse && (
+      <div className={`status-response ${statusResponse}`}>
+        <span>{message}</span>
       </div>
+    )}
 
-   
-      <div className="pagination-buttons">
-        <Button onClick={() => handlePagination(-1)} disabled={currentWeek === 0}>
-          Previous Week
-        </Button>
+    <div className="week-id-display">
+      Week ID: {currentWeekId}
+    </div>
+
+    <Table striped bordered hover className="schedule-table">
+      <thead>
+        <tr>
+          <th>S.No</th>
+          <th>Date</th>
+          <th>Day</th>
+          <th>Trainer Attendance</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+        {weekSchedules.length > 0 ? (
+          weekSchedules.map((schedule, index) => (
+            <tr key={index}>
+              <td>{schedule.sno}</td>
+              <td>{new Date(schedule.date).toLocaleDateString()}</td>
+              <td>{schedule.day}</td>
+              <td>
+                <Form.Select
+                  value={schedule.trainerAttendance || "PRESENT"}
+                  onChange={(e) => handleAttendanceChange(e, schedule.sno)}
+                >
+                  <option value="PRESENT">PRESENT</option>
+                  <option value="LEAVE">LEAVE</option>
+                </Form.Select>
+              </td>
+              <td>
+                <Form.Control
+                  type="text"
+                  value={schedule.description || ""}
+                  onChange={(e) => handleDescriptionChange(e, schedule.sno)}
+                  disabled={
+                    schedule.trainerAttendance === "LEAVE" ||
+                    !(schedule.modifyStatus === "enabled" || schedule.date === new Date().toISOString().split("T")[0])
+                  }
+                  placeholder={
+                    schedule.trainerAttendance === "LEAVE"
+                      ? "Trainer on leave"
+                      : !(schedule.modifyStatus === "enabled" || schedule.date === new Date().toISOString().split("T")[0]) && !schedule.description
+                      ? "Contact admin to enable"
+                      : "Enter description"
+                  }
+                />
+              </td>
+            </tr>
+          ))
+        ) : (
+          <tr>
+            <td colSpan="5" className="text-center">
+              No schedules available for this week.
+            </td>
+          </tr>
+        )}
+      </tbody>
+    </Table>
+
+    <div className="pagination-buttons">
+      <Button
+        variant="outline-primary"
+        className="prev-week"
+        onClick={() => handlePagination(-1)}
+        disabled={currentWeek === 0}
+      >
+        Previous Week
+      </Button>
+
+      <div className="week-buttons">
         {Array.from({ length: totalWeeks }).map((_, index) => (
           <Button
             key={index}
@@ -177,72 +239,22 @@ const DailySchedule = ({ trainingId }) => {
             {index + 1}
           </Button>
         ))}
-        <Button onClick={() => handlePagination(1)} disabled={currentWeek >= totalWeeks - 1}>
-          Next Week
-        </Button>
       </div>
 
-      <Table striped bordered hover>
-        <thead>
-          <tr>
-            <th>S.No</th>
-            <th>Date</th>
-            <th>Day</th>
-            <th>Trainer Attendance</th>
-            <th>Description</th>
-          </tr>
-        </thead>
-        <tbody>
-          {weekSchedules.length > 0 ? (
-            weekSchedules.map((schedule, index) => (
-              <tr key={index}>
-                <td>{schedule.sno}</td>
-                <td>{new Date(schedule.date).toLocaleDateString()}</td>
-                <td>{schedule.day}</td>
-                <td>
-                  <Form.Select
-                    value={schedule.trainerAttendance || "PRESENT"}
-                    onChange={(e) => handleAttendanceChange(e, schedule.sno)}
-                  >
-                    <option value="PRESENT">PRESENT</option>
-                    <option value="LEAVE">LEAVE</option>
-                  </Form.Select>
-                </td>
-                <td>
-                  <Form.Control
-                    type="text"
-                    value={schedule.description || ""}
-                    onChange={(e) => handleDescriptionChange(e, schedule.sno)}
-                    disabled={
-                      schedule.trainerAttendance === "LEAVE" ||
-                      !(schedule.modifyStatus === "enabled" || schedule.date === new Date().toISOString().split("T")[0])
-                    }
-                    placeholder={
-                      schedule.trainerAttendance === "LEAVE"
-                        ? "Trainer on leave"
-                        : !(schedule.modifyStatus === "enabled" || schedule.date === new Date().toISOString().split("T")[0]) && !schedule.description
-                        ? "Contact admin to enable"
-                        : "Enter description"
-                    }
-                  />
-                </td>
-              </tr>
-            ))
-          ) : (
-            <tr>
-              <td colSpan="5" className="text-center">
-                No schedules available for this week.
-              </td>
-            </tr>
-          )}
-        </tbody>
-      </Table>
-
-      <Button variant="primary" onClick={handleSubmit}>
-        Update
+      <Button
+        variant="outline-primary"
+        className="next-week"
+        onClick={() => handlePagination(1)}
+        disabled={currentWeek >= totalWeeks - 1}
+      >
+        Next Week
       </Button>
     </div>
-  );
-};
 
+    <Button variant="primary" className="update-button" onClick={handleSubmit}>
+      Update
+    </Button>
+  </div>
+  );
+}  
 export default DailySchedule;
