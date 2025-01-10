@@ -160,33 +160,6 @@ const ViewTraining = () => {
       alert("Unauthorized access.");
     }
   };
-
-  const handleDeleteTraining = async (trainingId) => {
-    const confirmDelete = window.confirm("Are you sure you want to delete this training?");
-    if (!confirmDelete) return;
-  
-    if (user && token) {
-      try {
-        const response = await axios.post(`${API_BASE_URL}/trainer/deleteTrainingByEmailandTrainingId`, {
-          token,
-          user,
-          trainingId,
-        });
-  
-        if (response.data.status === "success") {
-          alert("Training deleted successfully.");
-          fetchTrainings(); 
-        } else {
-          alert(response.data.message || "Failed to delete training.");
-        }
-      } catch (error) {
-        console.error("Error deleting training:", error);
-        alert("An error occurred while deleting the training.");
-      }
-    } else {
-      alert("Unauthorized access.");
-    }
-  };
   
   
   const handleViewTraining = (training) => {
