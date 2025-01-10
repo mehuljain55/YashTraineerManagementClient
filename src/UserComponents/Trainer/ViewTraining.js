@@ -10,10 +10,11 @@ const ViewTraining = () => {
   const [trainings, setTrainings] = useState([]);
   const [updatedTrainings, setUpdatedTrainings] = useState({});
   const [showModal, setShowModal] = useState(false);
-  const [selectedStatus, setSelectedStatus] = useState("PLANNED");
+  const [selectedStatus, setSelectedStatus] = useState("PENDING");
   const [selectedTraining, setSelectedTraining] = useState(null);
   const [newTraining, setNewTraining] = useState({
     description: '',
+    trainingName:'',
     startDate: '',
     endDate: '',
     noOfParticipant: '',
@@ -147,41 +148,14 @@ const ViewTraining = () => {
         training: newTraining,
       })
       .then((response) => {
-        fetchTrainings(); // Refresh the list
-        setShowCreateModal(false); // Close the modal
-        setNewTraining({ description: '', startDate: '', endDate: '', noOfParticipant: '' }); // Reset the form
+        fetchTrainings(); 
+        setShowCreateModal(false); 
+        setNewTraining({trainingName:'', description: '', startDate: '', endDate: '', noOfParticipant: '' }); // Reset the form
       })
       .catch((error) => {
         console.error("Error adding training:", error);
         alert("Failed to add training. Please try again.");
       });
-    } else {
-      alert("Unauthorized access.");
-    }
-  };
-
-  const handleDeleteTraining = async (trainingId) => {
-    const confirmDelete = window.confirm("Are you sure you want to delete this training?");
-    if (!confirmDelete) return;
-  
-    if (user && token) {
-      try {
-        const response = await axios.post(`${API_BASE_URL}/trainer/deleteTrainingByEmailandTrainingId`, {
-          token,
-          user,
-          trainingId,
-        });
-  
-        if (response.data.status === "success") {
-          alert("Training deleted successfully.");
-          fetchTrainings(); 
-        } else {
-          alert(response.data.message || "Failed to delete training.");
-        }
-      } catch (error) {
-        console.error("Error deleting training:", error);
-        alert("An error occurred while deleting the training.");
-      }
     } else {
       alert("Unauthorized access.");
     }
@@ -211,6 +185,8 @@ const ViewTraining = () => {
             {selectedStatus}
           </Dropdown.Toggle>
           <Dropdown.Menu>
+          <Dropdown.Item eventKey="PENDING">Pending</Dropdown.Item>
+           
             <Dropdown.Item eventKey="PLANNED">Planned</Dropdown.Item>
             <Dropdown.Item eventKey="INPROGRESS">In Progress</Dropdown.Item>
             <Dropdown.Item eventKey="COMPLETED">Completed</Dropdown.Item>
@@ -225,7 +201,7 @@ const ViewTraining = () => {
       <Table striped bordered hover className="training-table">
         <thead>
           <tr>
-            <th>Training ID</th>
+            <th>Training Name</th>
             <th>No of Participants</th>
             <th>Description</th>
             <th>Start Date</th>
@@ -238,33 +214,39 @@ const ViewTraining = () => {
           {Array.isArray(trainings) && trainings.length > 0 ? (
             trainings.map((training) => (
               <tr key={training.trainingId}>
-                <td>{training.trainingId}</td>
+                <td>{training.trainingName}</td>
                 <td>{training.noOfParticipant}</td>
                 <td>{training.description}</td>
                 <td>{new Date(training.startDate).toLocaleDateString()}</td>
                 <td>{new Date(training.endDate).toLocaleDateString()}</td>
                 <td>
-                  <Dropdown onSelect={(status) => handleStatusChange(training.trainingId, status)}>
-                    <Dropdown.Toggle variant="info" id="dropdown-basic">
-                      {training.status}
-                    </Dropdown.Toggle>
-                    <Dropdown.Menu>
-                      <Dropdown.Item eventKey="PLANNED">Planned</Dropdown.Item>
-                      <Dropdown.Item eventKey="INPROGRESS">In Progress</Dropdown.Item>
-                      <Dropdown.Item eventKey="COMPLETED">Completed</Dropdown.Item>
-                    </Dropdown.Menu>
-                  </Dropdown>
+                {training.status === 'PENDING' ? (
+        <Dropdown   id="dropdown-basic">
+        <Dropdown.Toggle variant="info">{training.status}</Dropdown.Toggle>
+        
+      </Dropdown>
+      ) : (
+        <Dropdown onSelect={handleStatusChange} id="dropdown-basic">
+          <Dropdown.Toggle variant="info">{training.status}</Dropdown.Toggle>
+          <Dropdown.Menu>
+            <Dropdown.Item eventKey="PLANNED">Planned</Dropdown.Item>
+            <Dropdown.Item eventKey="INPROGRESS">In Progress</Dropdown.Item>
+            <Dropdown.Item eventKey="COMPLETED">Completed</Dropdown.Item>
+          </Dropdown.Menu>
+        </Dropdown>
+      )}
                 </td>
                 <td>
-                  <Button className='view-taining-btn' onClick={() => handleViewTraining(training)}>
+                {training.status === 'PENDING' ? (
+      
+      <span style={{ backgroundColor: 'red', padding: 5,marginTop:'5px', color: 'white' }}>
+          Approval Pending
+        </span>
+      ) : (
+        <Button className='view-taining-btn' onClick={() => handleViewTraining(training)}>
                     View
                   </Button>
-                  <Button
-    className="delete-training-btn"
-    variant="danger"
-    onClick={() => handleDeleteTraining(training.trainingId)}>
-    Delete
-  </Button>
+      )}
                 </td>
               </tr>
             ))
@@ -278,12 +260,16 @@ const ViewTraining = () => {
         </tbody>
       </Table>
 
-      <Button
-        variant="primary"
-        onClick={handleUpdateTrainings}
-        disabled={Object.keys(updatedTrainings).length === 0}>
-        Update Trainings
-      </Button>
+
+      {selectedStatus !== 'PENDING' && ( 
+  <Button 
+    variant="primary" 
+    onClick={handleUpdateTrainings} 
+    disabled={Object.keys(updatedTrainings).length === 0}
+  >
+    Update Trainings
+  </Button>
+)}
 
       <Button
         variant="primary"
@@ -319,6 +305,18 @@ const ViewTraining = () => {
         </Modal.Header>
         <Modal.Body>
           <Form>
+
+          <Form.Group controlId="formTrainingName">
+              <Form.Label>Training Name</Form.Label>
+              <Form.Control
+                type="text"
+                value={newTraining.trainingName}
+                placeholder='BG4-BU5-Java-Upsacling-(Angular)-Jan-2025'
+                onChange={(e) =>
+               setNewTraining({ ...newTraining, trainingName: e.target.value })
+                }
+              />
+            </Form.Group>
             
             <Form.Group controlId="formParticipants">
               <Form.Label>No. of Participants</Form.Label>
