@@ -49,6 +49,7 @@ const DailySchedule = ({ trainingId }) => {
 
         setDailySchedules(weeksArray);
         setTotalWeeks(weeksArray.length); 
+        setActiveWeekByDate(weeksArray);
       })
       .catch((error) => {
         console.error("Error fetching daily schedule:", error);
@@ -58,6 +59,14 @@ const DailySchedule = ({ trainingId }) => {
       console.error("User or Token not found in session storage");
       setDailySchedules([]);
     }
+  };
+
+  const setActiveWeekByDate = (weeksArray) => {
+    const today = new Date().toISOString().split("T")[0];
+    const activeWeekIndex = weeksArray.findIndex((week) =>
+      week.schedules.some((schedule) => schedule.date === today)
+    );
+    setCurrentWeek(activeWeekIndex !== -1 ? activeWeekIndex : 0);
   };
 
   const handleDescriptionChange = (e, sno) => {
@@ -99,6 +108,10 @@ const DailySchedule = ({ trainingId }) => {
     if (newWeek < 0) newWeek = 0;
     if (newWeek >= totalWeeks) newWeek = totalWeeks - 1;
     setCurrentWeek(newWeek);
+  };
+
+  const handleWeekClick = (weekIndex) => {
+    setCurrentWeek(weekIndex);
   };
 
   const handleSubmit = () => {
@@ -150,13 +163,20 @@ const DailySchedule = ({ trainingId }) => {
         Week ID: {currentWeekId}
       </div>
 
-      <h3>Daily Schedule for Training ID: {trainingId}</h3>
-
+   
       <div className="pagination-buttons">
         <Button onClick={() => handlePagination(-1)} disabled={currentWeek === 0}>
           Previous Week
         </Button>
-        <span>Week {currentWeek + 1} of {totalWeeks}</span>
+        {Array.from({ length: totalWeeks }).map((_, index) => (
+          <Button
+            key={index}
+            onClick={() => handleWeekClick(index)}
+            variant={index === currentWeek ? "primary" : "outline-primary"}
+          >
+            {index + 1}
+          </Button>
+        ))}
         <Button onClick={() => handlePagination(1)} disabled={currentWeek >= totalWeeks - 1}>
           Next Week
         </Button>
@@ -193,8 +213,17 @@ const DailySchedule = ({ trainingId }) => {
                     type="text"
                     value={schedule.description || ""}
                     onChange={(e) => handleDescriptionChange(e, schedule.sno)}
-                    disabled={schedule.trainerAttendance === "LEAVE"}
-                    placeholder={schedule.trainerAttendance === "LEAVE" ? "Trainer on leave" : "Enter description"}
+                    disabled={
+                      schedule.trainerAttendance === "LEAVE" ||
+                      !(schedule.modifyStatus === "enabled" || schedule.date === new Date().toISOString().split("T")[0])
+                    }
+                    placeholder={
+                      schedule.trainerAttendance === "LEAVE"
+                        ? "Trainer on leave"
+                        : !(schedule.modifyStatus === "enabled" || schedule.date === new Date().toISOString().split("T")[0]) && !schedule.description
+                        ? "Contact admin to enable"
+                        : "Enter description"
+                    }
                   />
                 </td>
               </tr>
