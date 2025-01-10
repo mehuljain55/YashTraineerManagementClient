@@ -148,9 +148,9 @@ const ViewTraining = () => {
         training: newTraining,
       })
       .then((response) => {
-        fetchTrainings(); // Refresh the list
-        setShowCreateModal(false); // Close the modal
-        setNewTraining({ description: '', startDate: '', endDate: '', noOfParticipant: '' }); // Reset the form
+        fetchTrainings(); 
+        setShowCreateModal(false); 
+        setNewTraining({trainingName:'', description: '', startDate: '', endDate: '', noOfParticipant: '' }); // Reset the form
       })
       .catch((error) => {
         console.error("Error adding training:", error);
