@@ -10,6 +10,8 @@ const DailySchedule = ({ trainingId }) => {
   const [totalWeeks, setTotalWeeks] = useState(0); 
   const [statusResponse, setStatusResponse] = useState(null);
   const [message, setMessage] = useState('');
+  const token = sessionStorage.getItem("token");
+    const user = JSON.parse(sessionStorage.getItem("user"));
 
   useEffect(() => {
     fetchDailySchedule();
@@ -62,6 +64,65 @@ const DailySchedule = ({ trainingId }) => {
     }
   };
 
+  const handleExportTrainingWeekWise = async () => {
+    try {
+      if (!dailySchedules[currentWeek] || dailySchedules[currentWeek].schedules.length === 0) {
+        alert("Nothing to export for the current week.");
+        return;
+      }
+
+      console.log(dailySchedules[currentWeek]);
+  
+      // Prepare dailyScheduleList for export
+      const dailyScheduleList = dailySchedules[currentWeek].schedules.map((schedule) => ({
+        sno: schedule.sno,
+        weeklySchedule: { id: schedule.weekScheduleId }, // Reference the weekly schedule
+        day: schedule.day,
+        emailId: schedule.emailId,
+        trainingId: schedule.trainingId,
+        type: schedule.type, // Enum, e.g., "TRAINING"
+        date: schedule.date, // Format: "YYYY-MM-DD"
+        weekScheduleId: schedule.weekScheduleId, // Reference weekly schedule
+        trainerAttendance: schedule.trainerAttendance, // Enum, e.g., "PRESENT"
+      }));
+  
+      // Build the export model
+      const exportModel = {
+        token,
+        user,
+        dailyScheduleList,
+      };
+  
+      // Send request to export
+      const response = await axios.post(
+        `${API_BASE_URL}/export/dailyScheduleSingleWeek`,
+        exportModel,
+        { responseType: "blob" }
+      );
+  
+      const filename = user.name + " weekly schedule list.xlsx";
+
+      if (response.status === 200) {
+        const blob = new Blob([response.data], {
+          type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+      } else {
+        alert("Failed to export the current week schedule. Please try again.");
+      }
+    } catch (error) {
+      console.error("Error exporting current week schedule:", error);
+      alert("An error occurred while exporting the current week schedule.");
+    }
+  };
+  
+  
   const setActiveWeekByDate = (weeksArray) => {
     const today = new Date().toISOString().split("T")[0];
     const activeWeekIndex = weeksArray.findIndex((week) =>
@@ -253,6 +314,10 @@ const DailySchedule = ({ trainingId }) => {
 
     <Button variant="primary" className="update-button" onClick={handleSubmit}>
       Update
+    </Button>
+
+    <Button variant="primary" className="export-button" onClick={handleExportTrainingWeekWise}>
+      Export
     </Button>
   </div>
   );
