@@ -73,27 +73,24 @@ const DailySchedule = ({ trainingId }) => {
 
       console.log(dailySchedules[currentWeek]);
   
-      // Prepare dailyScheduleList for export
       const dailyScheduleList = dailySchedules[currentWeek].schedules.map((schedule) => ({
         sno: schedule.sno,
-        weeklySchedule: { id: schedule.weekScheduleId }, // Reference the weekly schedule
+        weeklySchedule: { id: schedule.weekScheduleId }, 
         day: schedule.day,
         emailId: schedule.emailId,
         trainingId: schedule.trainingId,
-        type: schedule.type, // Enum, e.g., "TRAINING"
-        date: schedule.date, // Format: "YYYY-MM-DD"
-        weekScheduleId: schedule.weekScheduleId, // Reference weekly schedule
-        trainerAttendance: schedule.trainerAttendance, // Enum, e.g., "PRESENT"
+        type: schedule.type, 
+        date: schedule.date,
+        weekScheduleId: schedule.weekScheduleId, 
+        trainerAttendance: schedule.trainerAttendance, 
       }));
   
-      // Build the export model
       const exportModel = {
         token,
         user,
         dailyScheduleList,
       };
   
-      // Send request to export
       const response = await axios.post(
         `${API_BASE_URL}/export/dailyScheduleSingleWeek`,
         exportModel,
