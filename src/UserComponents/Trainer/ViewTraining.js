@@ -12,6 +12,8 @@ const ViewTraining = () => {
   const [showModal, setShowModal] = useState(false);
   const [selectedStatus, setSelectedStatus] = useState("PENDING");
   const [selectedTraining, setSelectedTraining] = useState(null);
+  const [selectedFile, setSelectedFile] = useState(null);
+
   const [newTraining, setNewTraining] = useState({
     description: '',
     trainingName:'',
@@ -139,27 +141,51 @@ const ViewTraining = () => {
     }
   };
 
-  
   const handleAddTraining = () => {
     if (user && token) {
-      axios.post(`${API_BASE_URL}/training/addNewTraining`, {
+      const formData = new FormData();
+  
+      if (selectedFile) {
+        formData.append("file", selectedFile);
+      }
+  
+      const payload = {
         token,
         user,
         training: newTraining,
-      })
-      .then((response) => {
-        fetchTrainings(); 
-        setShowCreateModal(false); 
-        setNewTraining({trainingName:'', description: '', startDate: '', endDate: '', noOfParticipant: '' }); // Reset the form
-      })
-      .catch((error) => {
-        console.error("Error adding training:", error);
-        alert("Failed to add training. Please try again.");
-      });
+      };
+      formData.append(
+        "training",
+        new Blob([JSON.stringify(payload)], { type: "application/json" })
+      );
+  
+      axios
+        .post(`${API_BASE_URL}/training/addNewTraining`, formData, {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        })
+        .then((response) => {
+          fetchTrainings(); 
+          setShowCreateModal(false); 
+          setNewTraining({
+            trainingName: "",
+            description: "",
+            startDate: "",
+            endDate: "",
+            noOfParticipant: "",
+          }); 
+          setSelectedFile(null); 
+        })
+        .catch((error) => {
+          console.error("Error adding training:", error);
+          alert("Failed to add training. Please try again.");
+        });
     } else {
       alert("Unauthorized access.");
     }
   };
+  
   
   
   const handleViewTraining = (training) => {
@@ -362,6 +388,17 @@ const ViewTraining = () => {
                 }
               />
             </Form.Group>
+
+            <Form.Group controlId="formFile">
+  <Form.Label>Upload Training  File</Form.Label>
+  <Form.Control
+    type="file"
+    accept=".xlsx"
+    onChange={(e) => setSelectedFile(e.target.files[0])}
+  />
+</Form.Group>
+
+
           </Form>
         </Modal.Body>
         <Modal.Footer>
