@@ -141,46 +141,49 @@ const ViewTraining = () => {
     }
   };
 
-  const handleAddTraining = () => {
+  const handleAddTraining = async () => {
     if (user && token) {
-      const formData = new FormData();
-  
-      if (selectedFile) {
-        formData.append("file", selectedFile);
+      if (!selectedFile) {
+        alert("Please upload a reference file.");
+        return;
       }
+  
+      const formData = new FormData();
+      
+      formData.append("file", selectedFile);
   
       const payload = {
         token,
         user,
         training: newTraining,
       };
+  
       formData.append(
-        "training",
+        "training", 
         new Blob([JSON.stringify(payload)], { type: "application/json" })
       );
   
-      axios
-        .post(`${API_BASE_URL}/training/addNewTraining`, formData, {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        })
-        .then((response) => {
-          fetchTrainings(); 
-          setShowCreateModal(false); 
-          setNewTraining({
-            trainingName: "",
-            description: "",
-            startDate: "",
-            endDate: "",
-            noOfParticipant: "",
-          }); 
-          setSelectedFile(null); 
-        })
-        .catch((error) => {
-          console.error("Error adding training:", error);
-          alert("Failed to add training. Please try again.");
+      try {
+        const response = await axios.post(
+          `${API_BASE_URL}/training/addNewTraining`,
+          formData
+        );
+  
+        alert(response.data.message);
+        fetchTrainings();
+        setShowCreateModal(false);
+        setNewTraining({
+          trainingName: "",
+          description: "",
+          startDate: "",
+          endDate: "",
+          noOfParticipant: "",
         });
+        setSelectedFile(null);
+      } catch (error) {
+        console.error("Error adding training:", error);
+        alert("Failed to add training. Please try again.");
+      }
     } else {
       alert("Unauthorized access.");
     }
