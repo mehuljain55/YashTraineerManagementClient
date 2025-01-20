@@ -3,10 +3,10 @@ import { Button, Modal, Form, Table, Dropdown } from 'react-bootstrap';
 import axios from 'axios';
 import API_BASE_URL from "../Config/Config";
 import ShowStatus from "../StatusModel/ShowStatus";
-import DailySchedule from './DailySchedule';  
-import './ViewTraining.css';
+import DailySchedule from '../Trainer/DailySchedule';
+import './ViewTrainingManager.css';
 
-const ViewTraining = () => {
+const ViewTrainingManager = () => {
   const [trainings, setTrainings] = useState([]);
   const [updatedTrainings, setUpdatedTrainings] = useState({});
   const [showModal, setShowModal] = useState(false);
@@ -32,7 +32,7 @@ const ViewTraining = () => {
 
   const fetchTrainings = () => {
     if (user && token) {
-      axios.post(`${API_BASE_URL}/training/viewTrainingListByEmailAndStatus`, {
+      axios.post(`${API_BASE_URL}/manager/viewAllTrainingStatusWise`, {
         token,
         user,
         trainingStatus: selectedStatus
@@ -51,50 +51,9 @@ const ViewTraining = () => {
     }
   };
 
-  const handleStatusChange = (trainingId, newStatus) => {
-    setUpdatedTrainings((prev) => ({
-      ...prev,
-      [trainingId]: newStatus
-    }));
+  
 
-    setTrainings((prev) =>
-      prev.map((training) =>
-        training.trainingId === trainingId
-          ? { ...training, status: newStatus }
-          : training
-      )
-    );
-  };
-
-  const handleUpdateTrainings = () => {
-    const updatedTrainingList = Object.entries(updatedTrainings).map(([id, status]) => ({
-      trainingId: id,
-      status
-    }));
-
-    if (user && token) {
-      axios.post(`${API_BASE_URL}/training/updateTrainingStatus`, {
-        token,
-        user,
-        trainingList: updatedTrainingList
-      })
-      .then(() => {
-        setStatusResponse('success');
-        setMessage('Training statuses updated successfully.');
-        setUpdatedTrainings({});
-        fetchTrainings();
-      })
-      .catch((error) => {
-        setStatusResponse('failed');
-        setMessage('Error updating training statuses.');
-        console.error("Error updating training statuses:", error);
-      });
-    } else {
-      setStatusResponse('unauthorized');
-      setMessage('Unauthorized access.');
-    }
-  };
-
+  
   const handleExportTraining = async () => {
     try {
       if (trainings.length === 0) {
@@ -231,9 +190,7 @@ const ViewTraining = () => {
         </Dropdown>
       </div>
 
-      <Button variant="success" onClick={() => setShowCreateModal(true)}>
-        Add Training
-      </Button>
+     
 
       <Table striped bordered hover className="training-table">
         <thead>
@@ -257,37 +214,8 @@ const ViewTraining = () => {
                 <td>{new Date(training.startDate).toLocaleDateString()}</td>
                 <td>{new Date(training.endDate).toLocaleDateString()}</td>
                 <td>
-  {training.status === "PENDING" ? (
-    <Dropdown id="dropdown-basic">
-      <Dropdown.Toggle
-        variant="info"
-        className={`text-white ${getStatusClass(training.status)}`}  // Add text-white and dynamic color class
-        style={{ borderColor: 'transparent' }}
-      >
-        {training.status}
-      </Dropdown.Toggle>
-    </Dropdown>
-  ) : (
-    <Dropdown
-      onSelect={(newStatus) => handleStatusChange(training.trainingId, newStatus)}
-      id="dropdown-basic"
-    >
-      <Dropdown.Toggle
-        variant="info"
-        className={`text-white ${getStatusClass(training.status)}`}  // Add text-white and dynamic color class
-        style={{ borderColor: 'transparent' }}
-      >
-        {training.status}
-      </Dropdown.Toggle>
-      <Dropdown.Menu>
-        <Dropdown.Item eventKey="PLANNED">Planned</Dropdown.Item>
-        <Dropdown.Item eventKey="INPROGRESS">In Progress</Dropdown.Item>
-        <Dropdown.Item eventKey="COMPLETED">Completed</Dropdown.Item>
-      </Dropdown.Menu>
-    </Dropdown>
-  )}
-</td>
-
+                {training.status}
+                </td>
 
 
                 <td>
@@ -313,16 +241,7 @@ const ViewTraining = () => {
         </tbody>
       </Table>
 
-      {selectedStatus !== "PENDING" && (
-        <Button
-          variant="primary"
-          onClick={handleUpdateTrainings}
-          disabled={Object.keys(updatedTrainings).length === 0}
-        >
-          Update Trainings
-        </Button>
-      )}
-
+      
       <Button variant="primary" onClick={handleExportTraining}>
         Export
       </Button>
@@ -347,84 +266,9 @@ const ViewTraining = () => {
         </Modal.Footer>
       </Modal>
 
-      <Modal show={showCreateModal} onHide={() => setShowCreateModal(false)}>
-        <Modal.Header closeButton>
-          <Modal.Title>Add New Training</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          <Form>
-            <Form.Group controlId="trainingName">
-              <Form.Label>Training Name</Form.Label>
-              <Form.Control
-                type="text"
-                placeholder="BG4-BU5-Java-Upsacling-(Angular)-Jan-2025"
-                value={newTraining.trainingName}
-                onChange={(e) =>
-                  setNewTraining({ ...newTraining, trainingName: e.target.value })
-                }
-              />
-            </Form.Group>
-            <Form.Group controlId="noOfParticipant">
-              <Form.Label>No of Participants</Form.Label>
-              <Form.Control
-                type="number"
-                value={newTraining.noOfParticipant}
-                onChange={(e) =>
-                  setNewTraining({ ...newTraining, noOfParticipant: e.target.value })
-                }
-              />
-            </Form.Group>
-            <Form.Group controlId="description">
-              <Form.Label>Description</Form.Label>
-              <Form.Control
-                as="textarea"
-                rows={3}
-                value={newTraining.description}
-                onChange={(e) =>
-                  setNewTraining({ ...newTraining, description: e.target.value })
-                }
-              />
-            </Form.Group>
-            <Form.Group controlId="startDate">
-              <Form.Label>Start Date</Form.Label>
-              <Form.Control
-                type="date"
-                value={newTraining.startDate}
-                onChange={(e) =>
-                  setNewTraining({ ...newTraining, startDate: e.target.value })
-                }
-              />
-            </Form.Group>
-            <Form.Group controlId="endDate">
-              <Form.Label>End Date</Form.Label>
-              <Form.Control
-                type="date"
-                value={newTraining.endDate}
-                onChange={(e) =>
-                  setNewTraining({ ...newTraining, endDate: e.target.value })
-                }
-              />
-            </Form.Group>
-            <Form.Group controlId="file">
-              <Form.Label>Upload File</Form.Label>
-              <Form.Control
-                type="file"
-                onChange={(e) => setSelectedFile(e.target.files[0])}
-              />
-            </Form.Group>
-          </Form>
-        </Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={() => setShowCreateModal(false)}>
-            Close
-          </Button>
-          <Button variant="primary" onClick={handleAddTraining}>
-            Save
-          </Button>
-        </Modal.Footer>
-      </Modal>
+      
     </div>
   );
 };
 
-export default ViewTraining;
+export default ViewTrainingManager;
