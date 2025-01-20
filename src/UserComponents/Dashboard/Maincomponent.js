@@ -7,6 +7,7 @@ import ViewTraining from "../Trainer/ViewTraining";
 import ViewTrainerSchedule from "../Trainer/ViewTrainerSchedule";
 import "bootstrap/dist/css/bootstrap.min.css";
 import AddDailySchedule from "../Trainer/AddDailySchedule";
+import ViewTrainingManager from "../Manager/ViewTrainingManager";
 
 
 const Maincomponent = () => {
@@ -52,6 +53,13 @@ const Maincomponent = () => {
                 <AddDailySchedule />
               </div>
             );  
+
+            case "ViewTrainingManager":
+              return (
+                <div>
+                  <ViewTrainingManager />
+                </div>
+              );  
            
       default:
         return (
@@ -147,6 +155,27 @@ const Maincomponent = () => {
             </>
           )}
           
+          {user.role === "manager" && (
+            <>
+              <h6 className="px-4 text-secondary">User</h6>
+              <ul className="list-unstyled px-3">
+                <li>
+                  <button
+                    className={`btn btn-link text-decoration-none w-100 text-start ${
+                      activeSection === "ViewTrainingManager"
+                        ? "fw-bold text-primary"
+                        : "text-dark"
+                    }`}
+                    onClick={() => setActiveSection("ViewTrainingManager")}
+                  >
+                    View Training
+                  </button>
+                </li>
+               
+              </ul>
+            </>
+          )}
+
         </div>
       </div>
 
