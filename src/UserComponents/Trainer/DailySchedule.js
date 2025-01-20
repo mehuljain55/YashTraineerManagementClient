@@ -3,6 +3,7 @@ import axios from 'axios';
 import { Button, Table, Form } from 'react-bootstrap';
 import API_BASE_URL from "../Config/Config"; 
 import './DailySchedule.css';
+import EditRequestModal from './EditRequestModal';
 
 const DailySchedule = ({ trainingId }) => {
   const [dailySchedules, setDailySchedules] = useState([]);
@@ -10,6 +11,10 @@ const DailySchedule = ({ trainingId }) => {
   const [totalWeeks, setTotalWeeks] = useState(0); 
   const [statusResponse, setStatusResponse] = useState(null);
   const [message, setMessage] = useState('');
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [selectedDailyScheduleId, setSelectedDailyScheduleId] = useState(null);
+  const token = sessionStorage.getItem("token");
+  const user = JSON.parse(sessionStorage.getItem("user"));
 
   useEffect(() => {
     fetchDailySchedule();
@@ -62,6 +67,106 @@ const DailySchedule = ({ trainingId }) => {
     }
   };
 
+  const isTextFieldDisabled = (schedule) => {
+    if (schedule.trainerAttendance === "LEAVE") {
+      return true;
+    }
+  
+    if (schedule.modfiyStatus === "enabled") {
+    
+      return false; 
+    }
+  
+    const today = new Date().toISOString().split("T")[0];
+    if (new Date(schedule.date).toISOString().split("T")[0] === today) {
+      return false; 
+    }
+  
+    return true;
+  };
+  
+  
+  
+  const getPlaceholderText = (schedule) => {
+    if (schedule.trainerAttendance === "LEAVE") return "Trainer on leave";
+  
+    const today = new Date().toISOString().split("T")[0];
+    if (
+      !(schedule.modfiyStatus === "enabled" || new Date(schedule.date).toISOString().split("T")[0] === today)
+    ) {
+      return "Contact admin to enable";
+    }
+  
+    return "Enter description";
+  };
+
+  const handleOpenEditModal = (sno) => {
+    setSelectedDailyScheduleId(sno);
+    setShowEditModal(true);
+  };
+
+  const handleCloseEditModal = () => {
+    setShowEditModal(false);
+    setSelectedDailyScheduleId(null);
+  };
+
+
+  const handleExportTrainingWeekWise = async () => {
+    try {
+      if (!dailySchedules[currentWeek] || dailySchedules[currentWeek].schedules.length === 0) {
+        alert("Nothing to export for the current week.");
+        return;
+      }
+
+      console.log(dailySchedules[currentWeek]);
+  
+      const dailyScheduleList = dailySchedules[currentWeek].schedules.map((schedule) => ({
+        sno: schedule.sno,
+        weeklySchedule: { id: schedule.weekScheduleId }, 
+        day: schedule.day,
+        emailId: schedule.emailId,
+        trainingId: schedule.trainingId,
+        type: schedule.type, 
+        date: schedule.date,
+        weekScheduleId: schedule.weekScheduleId, 
+        trainerAttendance: schedule.trainerAttendance, 
+      }));
+  
+      const exportModel = {
+        token,
+        user,
+        dailyScheduleList,
+      };
+  
+      const response = await axios.post(
+        `${API_BASE_URL}/export/dailyScheduleSingleWeek`,
+        exportModel,
+        { responseType: "blob" }
+      );
+  
+      const filename = user.name + " weekly schedule list.xlsx";
+
+      if (response.status === 200) {
+        const blob = new Blob([response.data], {
+          type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+      } else {
+        alert("Failed to export the current week schedule. Please try again.");
+      }
+    } catch (error) {
+      console.error("Error exporting current week schedule:", error);
+      alert("An error occurred while exporting the current week schedule.");
+    }
+  };
+  
+  
   const setActiveWeekByDate = (weeksArray) => {
     const today = new Date().toISOString().split("T")[0];
     const activeWeekIndex = weeksArray.findIndex((week) =>
@@ -151,6 +256,7 @@ const DailySchedule = ({ trainingId }) => {
 
   const weekSchedules = dailySchedules[currentWeek]?.schedules || [];
   const currentWeekId = dailySchedules[currentWeek]?.weekScheduleId || '';
+  
   return (
     <div className="daily-schedule-container">
     {statusResponse && (
@@ -164,60 +270,68 @@ const DailySchedule = ({ trainingId }) => {
     </div>
 
     <Table striped bordered hover className="schedule-table">
-      <thead>
-        <tr>
-          <th>S.No</th>
-          <th>Date</th>
-          <th>Day</th>
-          <th>Trainer Attendance</th>
-          <th>Description</th>
+  <thead>
+    <tr>
+      <th>S.No</th>
+      <th>Date</th>
+      <th>Day</th>
+      <th>Trainer Attendance</th>
+      <th>Description</th>
+      <th>Action</th>
+    </tr>
+  </thead>
+  <tbody>
+    {weekSchedules.length > 0 ? (
+      weekSchedules.map((schedule, index) => (
+        <tr key={index}>
+          <td>{schedule.sno}</td>
+          <td>{new Date(schedule.date).toLocaleDateString()}</td>
+          <td>{schedule.day}</td>
+          <td>
+            <Form.Select
+              value={schedule.trainerAttendance || "PRESENT"}
+              onChange={(e) => handleAttendanceChange(e, schedule.sno)}
+            >
+              <option value="PRESENT">PRESENT</option>
+              <option value="LEAVE">LEAVE</option>
+            </Form.Select>
+          </td>
+          <td>
+            <Form.Control
+              type="text"
+              value={schedule.description || ""}
+              onChange={(e) => handleDescriptionChange(e, schedule.sno)}
+              disabled={isTextFieldDisabled(schedule)}
+              placeholder={getPlaceholderText(schedule)}
+            />
+          </td>
+          <td>
+            <Button
+              variant="primary"
+              size="sm"
+              onClick={() => handleOpenEditModal(schedule.sno)}
+            >
+              Request Edit
+            </Button>
+          </td>
         </tr>
-      </thead>
-      <tbody>
-        {weekSchedules.length > 0 ? (
-          weekSchedules.map((schedule, index) => (
-            <tr key={index}>
-              <td>{schedule.sno}</td>
-              <td>{new Date(schedule.date).toLocaleDateString()}</td>
-              <td>{schedule.day}</td>
-              <td>
-                <Form.Select
-                  value={schedule.trainerAttendance || "PRESENT"}
-                  onChange={(e) => handleAttendanceChange(e, schedule.sno)}
-                >
-                  <option value="PRESENT">PRESENT</option>
-                  <option value="LEAVE">LEAVE</option>
-                </Form.Select>
-              </td>
-              <td>
-                <Form.Control
-                  type="text"
-                  value={schedule.description || ""}
-                  onChange={(e) => handleDescriptionChange(e, schedule.sno)}
-                  disabled={
-                    schedule.trainerAttendance === "LEAVE" ||
-                    !(schedule.modifyStatus === "enabled" || schedule.date === new Date().toISOString().split("T")[0])
-                  }
-                  placeholder={
-                    schedule.trainerAttendance === "LEAVE"
-                      ? "Trainer on leave"
-                      : !(schedule.modifyStatus === "enabled" || schedule.date === new Date().toISOString().split("T")[0]) && !schedule.description
-                      ? "Contact admin to enable"
-                      : "Enter description"
-                  }
-                />
-              </td>
-            </tr>
-          ))
-        ) : (
-          <tr>
-            <td colSpan="5" className="text-center">
-              No schedules available for this week.
-            </td>
-          </tr>
-        )}
-      </tbody>
-    </Table>
+      ))
+    ) : (
+      <tr>
+        <td colSpan="6" className="text-center">
+          No schedules available for this week.
+        </td>
+      </tr>
+    )}
+  </tbody>
+</Table>
+
+    <EditRequestModal
+        show={showEditModal}
+        handleClose={handleCloseEditModal}
+        trainingId={trainingId}
+        dailyScheduleId={selectedDailyScheduleId}
+      />
 
     <div className="pagination-buttons">
       <Button
@@ -253,6 +367,10 @@ const DailySchedule = ({ trainingId }) => {
 
     <Button variant="primary" className="update-button" onClick={handleSubmit}>
       Update
+    </Button>
+
+    <Button variant="primary" className="export-button" onClick={handleExportTrainingWeekWise}>
+      Export
     </Button>
   </div>
   );
