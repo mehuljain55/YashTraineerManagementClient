@@ -34,16 +34,21 @@ const EditRequestModal = ({ show, handleClose, trainingId, dailyScheduleId }) =>
     try {
       const response = await axios.post(`${API_BASE_URL}/trainer/editRequest`, requestData);
       if (response.data.status === "success") {
-        setStatusMessage("Request submitted successfully!");
+        alert("Request submitted successfully!");
         handleClose();
       } else {
-        setStatusMessage(response.data.message || "Failed to submit request.");
+        alert(response.data.message || "Failed to submit request.");
       }
     } catch (error) {
       console.error("Error submitting edit request:", error);
-      setStatusMessage("An error occurred. Please try again.");
+      alert("An error occurred. Please try again.");
     } finally {
       setLoading(false);
+      setReason("");
+      setStatusMessage("");
+      handleClose();
+
+      
     }
   };
 
