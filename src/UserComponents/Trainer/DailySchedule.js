@@ -3,6 +3,7 @@ import axios from 'axios';
 import { Button, Table, Form } from 'react-bootstrap';
 import API_BASE_URL from "../Config/Config"; 
 import './DailySchedule.css';
+import EditRequestModal from './EditRequestModal';
 
 const DailySchedule = ({ trainingId }) => {
   const [dailySchedules, setDailySchedules] = useState([]);
@@ -10,8 +11,10 @@ const DailySchedule = ({ trainingId }) => {
   const [totalWeeks, setTotalWeeks] = useState(0); 
   const [statusResponse, setStatusResponse] = useState(null);
   const [message, setMessage] = useState('');
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [selectedDailyScheduleId, setSelectedDailyScheduleId] = useState(null);
   const token = sessionStorage.getItem("token");
-    const user = JSON.parse(sessionStorage.getItem("user"));
+  const user = JSON.parse(sessionStorage.getItem("user"));
 
   useEffect(() => {
     fetchDailySchedule();
@@ -63,6 +66,50 @@ const DailySchedule = ({ trainingId }) => {
       setDailySchedules([]);
     }
   };
+
+  const isTextFieldDisabled = (schedule) => {
+    if (schedule.trainerAttendance === "LEAVE") {
+      return true;
+    }
+  
+    if (schedule.modfiyStatus === "enabled") {
+    
+      return false; 
+    }
+  
+    const today = new Date().toISOString().split("T")[0];
+    if (new Date(schedule.date).toISOString().split("T")[0] === today) {
+      return false; 
+    }
+  
+    return true;
+  };
+  
+  
+  
+  const getPlaceholderText = (schedule) => {
+    if (schedule.trainerAttendance === "LEAVE") return "Trainer on leave";
+  
+    const today = new Date().toISOString().split("T")[0];
+    if (
+      !(schedule.modfiyStatus === "enabled" || new Date(schedule.date).toISOString().split("T")[0] === today)
+    ) {
+      return "Contact admin to enable";
+    }
+  
+    return "Enter description";
+  };
+
+  const handleOpenEditModal = (sno) => {
+    setSelectedDailyScheduleId(sno);
+    setShowEditModal(true);
+  };
+
+  const handleCloseEditModal = () => {
+    setShowEditModal(false);
+    setSelectedDailyScheduleId(null);
+  };
+
 
   const handleExportTrainingWeekWise = async () => {
     try {
@@ -209,6 +256,7 @@ const DailySchedule = ({ trainingId }) => {
 
   const weekSchedules = dailySchedules[currentWeek]?.schedules || [];
   const currentWeekId = dailySchedules[currentWeek]?.weekScheduleId || '';
+  
   return (
     <div className="daily-schedule-container">
     {statusResponse && (
@@ -222,60 +270,68 @@ const DailySchedule = ({ trainingId }) => {
     </div>
 
     <Table striped bordered hover className="schedule-table">
-      <thead>
-        <tr>
-          <th>S.No</th>
-          <th>Date</th>
-          <th>Day</th>
-          <th>Trainer Attendance</th>
-          <th>Description</th>
+  <thead>
+    <tr>
+      <th>S.No</th>
+      <th>Date</th>
+      <th>Day</th>
+      <th>Trainer Attendance</th>
+      <th>Description</th>
+      <th>Action</th>
+    </tr>
+  </thead>
+  <tbody>
+    {weekSchedules.length > 0 ? (
+      weekSchedules.map((schedule, index) => (
+        <tr key={index}>
+          <td>{schedule.sno}</td>
+          <td>{new Date(schedule.date).toLocaleDateString()}</td>
+          <td>{schedule.day}</td>
+          <td>
+            <Form.Select
+              value={schedule.trainerAttendance || "PRESENT"}
+              onChange={(e) => handleAttendanceChange(e, schedule.sno)}
+            >
+              <option value="PRESENT">PRESENT</option>
+              <option value="LEAVE">LEAVE</option>
+            </Form.Select>
+          </td>
+          <td>
+            <Form.Control
+              type="text"
+              value={schedule.description || ""}
+              onChange={(e) => handleDescriptionChange(e, schedule.sno)}
+              disabled={isTextFieldDisabled(schedule)}
+              placeholder={getPlaceholderText(schedule)}
+            />
+          </td>
+          <td>
+            <Button
+              variant="primary"
+              size="sm"
+              onClick={() => handleOpenEditModal(schedule.sno)}
+            >
+              Request Edit
+            </Button>
+          </td>
         </tr>
-      </thead>
-      <tbody>
-        {weekSchedules.length > 0 ? (
-          weekSchedules.map((schedule, index) => (
-            <tr key={index}>
-              <td>{schedule.sno}</td>
-              <td>{new Date(schedule.date).toLocaleDateString()}</td>
-              <td>{schedule.day}</td>
-              <td>
-                <Form.Select
-                  value={schedule.trainerAttendance || "PRESENT"}
-                  onChange={(e) => handleAttendanceChange(e, schedule.sno)}
-                >
-                  <option value="PRESENT">PRESENT</option>
-                  <option value="LEAVE">LEAVE</option>
-                </Form.Select>
-              </td>
-              <td>
-                <Form.Control
-                  type="text"
-                  value={schedule.description || ""}
-                  onChange={(e) => handleDescriptionChange(e, schedule.sno)}
-                  disabled={
-                    schedule.trainerAttendance === "LEAVE" ||
-                    !(schedule.modifyStatus === "enabled" || schedule.date === new Date().toISOString().split("T")[0])
-                  }
-                  placeholder={
-                    schedule.trainerAttendance === "LEAVE"
-                      ? "Trainer on leave"
-                      : !(schedule.modifyStatus === "enabled" || schedule.date === new Date().toISOString().split("T")[0]) && !schedule.description
-                      ? "Contact admin to enable"
-                      : "Enter description"
-                  }
-                />
-              </td>
-            </tr>
-          ))
-        ) : (
-          <tr>
-            <td colSpan="5" className="text-center">
-              No schedules available for this week.
-            </td>
-          </tr>
-        )}
-      </tbody>
-    </Table>
+      ))
+    ) : (
+      <tr>
+        <td colSpan="6" className="text-center">
+          No schedules available for this week.
+        </td>
+      </tr>
+    )}
+  </tbody>
+</Table>
+
+    <EditRequestModal
+        show={showEditModal}
+        handleClose={handleCloseEditModal}
+        trainingId={trainingId}
+        dailyScheduleId={selectedDailyScheduleId}
+      />
 
     <div className="pagination-buttons">
       <Button

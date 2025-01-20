@@ -13,10 +13,9 @@ const ViewTraining = () => {
   const [selectedStatus, setSelectedStatus] = useState("PENDING");
   const [selectedTraining, setSelectedTraining] = useState(null);
   const [selectedFile, setSelectedFile] = useState(null);
-
   const [newTraining, setNewTraining] = useState({
     description: '',
-    trainingName:'',
+    trainingName: '',
     startDate: '',
     endDate: '',
     noOfParticipant: '',
@@ -27,15 +26,11 @@ const ViewTraining = () => {
   const token = sessionStorage.getItem("token");
   const user = JSON.parse(sessionStorage.getItem("user"));
 
-
   useEffect(() => {
     fetchTrainings();
   }, [selectedStatus]);
 
   const fetchTrainings = () => {
-    const token = sessionStorage.getItem("token");
-    const user = JSON.parse(sessionStorage.getItem("user"));
-
     if (user && token) {
       axios.post(`${API_BASE_URL}/training/viewTrainingListByEmailAndStatus`, {
         token,
@@ -62,17 +57,16 @@ const ViewTraining = () => {
       [trainingId]: newStatus
     }));
 
-    setTrainings((prev) => 
-      prev.map((training) => 
-        training.trainingId === trainingId 
-          ? { ...training, status: newStatus } 
+    setTrainings((prev) =>
+      prev.map((training) =>
+        training.trainingId === trainingId
+          ? { ...training, status: newStatus }
           : training
       )
     );
   };
 
   const handleUpdateTrainings = () => {
-  
     const updatedTrainingList = Object.entries(updatedTrainings).map(([id, status]) => ({
       trainingId: id,
       status
@@ -103,11 +97,9 @@ const ViewTraining = () => {
 
   const handleExportTraining = async () => {
     try {
-     
-      if (trainings.length === 0) 
-      {
-         alert("Nothing to export");
-         return;
+      if (trainings.length === 0) {
+        alert("Nothing to export");
+        return;
       }
 
       const exportModel = {
@@ -117,10 +109,9 @@ const ViewTraining = () => {
       };
 
       const response = await axios.post(`${API_BASE_URL}/export/trainingList`, exportModel, {
-        responseType: "blob", 
+        responseType: "blob",
       });
 
-  
       if (response.status === 200) {
         const blob = new Blob([response.data], {
           type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
@@ -147,28 +138,27 @@ const ViewTraining = () => {
         alert("Please upload a reference file.");
         return;
       }
-  
+
       const formData = new FormData();
-      
       formData.append("file", selectedFile);
-  
+
       const payload = {
         token,
         user,
         training: newTraining,
       };
-  
+
       formData.append(
-        "training", 
+        "training",
         new Blob([JSON.stringify(payload)], { type: "application/json" })
       );
-  
+
       try {
         const response = await axios.post(
           `${API_BASE_URL}/training/addNewTraining`,
           formData
         );
-  
+
         alert(response.data.message);
         fetchTrainings();
         setShowCreateModal(false);
@@ -188,9 +178,22 @@ const ViewTraining = () => {
       alert("Unauthorized access.");
     }
   };
-  
-  
-  
+
+  const getStatusClass = (status) => {
+    switch (status) {
+      case "PENDING":
+        return "bg-danger";  // Red
+      case "PLANNED":
+        return "bg-info";    // Sky Blue
+      case "INPROGRESS":
+        return "bg-warning"; // Yellow
+      case "COMPLETED":
+        return "bg-success"; // Green
+      default:
+        return "";
+    }
+  };
+
   const handleViewTraining = (training) => {
     setSelectedTraining(training);
     setShowModal(true);
@@ -206,16 +209,21 @@ const ViewTraining = () => {
         />
       )}
 
-      <div className="d-flex justify-content-between align-items-center">
+<div className="d-flex justify-content-between align-items-center">
         <h3>Training List</h3>
-        
+
         <Dropdown onSelect={setSelectedStatus}>
-          <Dropdown.Toggle variant="success" id="dropdown-basic">
+          <Dropdown.Toggle
+            variant="success"
+            id="dropdown-basic"
+            className={getStatusClass(selectedStatus)}
+            style={{ borderColor: 'transparent' }}
+          >
             {selectedStatus}
           </Dropdown.Toggle>
+
           <Dropdown.Menu>
-          <Dropdown.Item eventKey="PENDING">Pending</Dropdown.Item>
-           
+            <Dropdown.Item eventKey="PENDING">Pending</Dropdown.Item>
             <Dropdown.Item eventKey="PLANNED">Planned</Dropdown.Item>
             <Dropdown.Item eventKey="INPROGRESS">In Progress</Dropdown.Item>
             <Dropdown.Item eventKey="COMPLETED">Completed</Dropdown.Item>
@@ -249,33 +257,49 @@ const ViewTraining = () => {
                 <td>{new Date(training.startDate).toLocaleDateString()}</td>
                 <td>{new Date(training.endDate).toLocaleDateString()}</td>
                 <td>
-                {training.status === 'PENDING' ? (
-        <Dropdown   id="dropdown-basic">
-        <Dropdown.Toggle variant="info">{training.status}</Dropdown.Toggle>
-        
-      </Dropdown>
-      ) : (
-        <Dropdown onSelect={handleStatusChange} id="dropdown-basic">
-          <Dropdown.Toggle variant="info">{training.status}</Dropdown.Toggle>
-          <Dropdown.Menu>
-            <Dropdown.Item eventKey="PLANNED">Planned</Dropdown.Item>
-            <Dropdown.Item eventKey="INPROGRESS">In Progress</Dropdown.Item>
-            <Dropdown.Item eventKey="COMPLETED">Completed</Dropdown.Item>
-          </Dropdown.Menu>
-        </Dropdown>
-      )}
-                </td>
+  {training.status === "PENDING" ? (
+    <Dropdown id="dropdown-basic">
+      <Dropdown.Toggle
+        variant="info"
+        className={`text-white ${getStatusClass(training.status)}`}  // Add text-white and dynamic color class
+        style={{ borderColor: 'transparent' }}
+      >
+        {training.status}
+      </Dropdown.Toggle>
+    </Dropdown>
+  ) : (
+    <Dropdown
+      onSelect={(newStatus) => handleStatusChange(training.trainingId, newStatus)}
+      id="dropdown-basic"
+    >
+      <Dropdown.Toggle
+        variant="info"
+        className={`text-white ${getStatusClass(training.status)}`}  // Add text-white and dynamic color class
+        style={{ borderColor: 'transparent' }}
+      >
+        {training.status}
+      </Dropdown.Toggle>
+      <Dropdown.Menu>
+        <Dropdown.Item eventKey="PLANNED">Planned</Dropdown.Item>
+        <Dropdown.Item eventKey="INPROGRESS">In Progress</Dropdown.Item>
+        <Dropdown.Item eventKey="COMPLETED">Completed</Dropdown.Item>
+      </Dropdown.Menu>
+    </Dropdown>
+  )}
+</td>
+
+
+
                 <td>
-                {training.status === 'PENDING' ? (
-      
-      <span style={{ backgroundColor: 'red', padding: 5,marginTop:'5px', color: 'white' }}>
-          Approval Pending
-        </span>
-      ) : (
-        <Button className='view-taining-btn' onClick={() => handleViewTraining(training)}>
-                    View
-                  </Button>
-      )}
+                  {training.status === "PENDING" ? (
+                    <span style={{ backgroundColor: "red", padding: 5, marginTop: "5px", color: "white" }}>
+                      Approval Pending
+                    </span>
+                  ) : (
+                    <Button className="view-taining-btn" onClick={() => handleViewTraining(training)}>
+                      View
+                    </Button>
+                  )}
                 </td>
               </tr>
             ))
@@ -289,31 +313,27 @@ const ViewTraining = () => {
         </tbody>
       </Table>
 
-
-      {selectedStatus !== 'PENDING' && ( 
-  <Button 
-    variant="primary" 
-    onClick={handleUpdateTrainings} 
-    disabled={Object.keys(updatedTrainings).length === 0}
-  >
-    Update Trainings
-  </Button>
-)}
-
-      <Button
-        variant="primary"
-        onClick={handleExportTraining}
+      {selectedStatus !== "PENDING" && (
+        <Button
+          variant="primary"
+          onClick={handleUpdateTrainings}
+          disabled={Object.keys(updatedTrainings).length === 0}
         >
+          Update Trainings
+        </Button>
+      )}
+
+      <Button variant="primary" onClick={handleExportTraining}>
         Export
       </Button>
 
       <Modal show={showModal} onHide={() => setShowModal(false)} size="lg">
         <Modal.Header closeButton>
-          <Modal.Title>Training Schedule for {selectedTraining ? selectedTraining.trainingId : ''}</Modal.Title>
+          <Modal.Title>Training Schedule for {selectedTraining ? selectedTraining.trainingId : ""}</Modal.Title>
         </Modal.Header>
         <Modal.Body>
           {selectedTraining && (
-            <DailySchedule 
+            <DailySchedule
               trainingId={selectedTraining.trainingId}
               startDate={selectedTraining.startDate}
               endDate={selectedTraining.endDate}
@@ -327,40 +347,34 @@ const ViewTraining = () => {
         </Modal.Footer>
       </Modal>
 
-
       <Modal show={showCreateModal} onHide={() => setShowCreateModal(false)}>
         <Modal.Header closeButton>
           <Modal.Title>Add New Training</Modal.Title>
         </Modal.Header>
         <Modal.Body>
           <Form>
-
-          <Form.Group controlId="formTrainingName">
+            <Form.Group controlId="trainingName">
               <Form.Label>Training Name</Form.Label>
               <Form.Control
                 type="text"
+                placeholder="Enter training name"
                 value={newTraining.trainingName}
-                placeholder='BG4-BU5-Java-Upsacling-(Angular)-Jan-2025'
                 onChange={(e) =>
-               setNewTraining({ ...newTraining, trainingName: e.target.value })
+                  setNewTraining({ ...newTraining, trainingName: e.target.value })
                 }
               />
             </Form.Group>
-            
-            <Form.Group controlId="formParticipants">
-              <Form.Label>No. of Participants</Form.Label>
+            <Form.Group controlId="noOfParticipant">
+              <Form.Label>No of Participants</Form.Label>
               <Form.Control
                 type="number"
                 value={newTraining.noOfParticipant}
                 onChange={(e) =>
-                  setNewTraining({
-                    ...newTraining,
-                    noOfParticipant: parseInt(e.target.value),
-                  })
+                  setNewTraining({ ...newTraining, noOfParticipant: e.target.value })
                 }
               />
             </Form.Group>
-            <Form.Group controlId="formDescription">
+            <Form.Group controlId="description">
               <Form.Label>Description</Form.Label>
               <Form.Control
                 as="textarea"
@@ -371,7 +385,7 @@ const ViewTraining = () => {
                 }
               />
             </Form.Group>
-            <Form.Group controlId="formStartDate">
+            <Form.Group controlId="startDate">
               <Form.Label>Start Date</Form.Label>
               <Form.Control
                 type="date"
@@ -381,7 +395,7 @@ const ViewTraining = () => {
                 }
               />
             </Form.Group>
-            <Form.Group controlId="formEndDate">
+            <Form.Group controlId="endDate">
               <Form.Label>End Date</Form.Label>
               <Form.Control
                 type="date"
@@ -391,25 +405,21 @@ const ViewTraining = () => {
                 }
               />
             </Form.Group>
-
-            <Form.Group controlId="formFile">
-  <Form.Label>Upload Training  File</Form.Label>
-  <Form.Control
-    type="file"
-    accept=".xlsx"
-    onChange={(e) => setSelectedFile(e.target.files[0])}
-  />
-</Form.Group>
-
-
+            <Form.Group controlId="file">
+              <Form.Label>Upload File</Form.Label>
+              <Form.Control
+                type="file"
+                onChange={(e) => setSelectedFile(e.target.files[0])}
+              />
+            </Form.Group>
           </Form>
         </Modal.Body>
         <Modal.Footer>
           <Button variant="secondary" onClick={() => setShowCreateModal(false)}>
-            Cancel
+            Close
           </Button>
           <Button variant="primary" onClick={handleAddTraining}>
-            Add Training
+            Save
           </Button>
         </Modal.Footer>
       </Modal>
