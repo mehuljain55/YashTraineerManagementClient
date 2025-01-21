@@ -91,50 +91,28 @@ const ViewTrainingManager = () => {
     }
   };
 
-  const handleAddTraining = async () => {
+  const handleUpdateTrainings = (trainingId) => {
+
     if (user && token) {
-      if (!selectedFile) {
-        alert("Please upload a reference file.");
-        return;
-      }
-
-      const formData = new FormData();
-      formData.append("file", selectedFile);
-
-      const payload = {
+      axios.post(`${API_BASE_URL}/manager/updateTrainingStatus`, {
         token,
         user,
-        training: newTraining,
-      };
-
-      formData.append(
-        "training",
-        new Blob([JSON.stringify(payload)], { type: "application/json" })
-      );
-
-      try {
-        const response = await axios.post(
-          `${API_BASE_URL}/training/addNewTraining`,
-          formData
-        );
-
-        alert(response.data.message);
+        trainingId
+      })
+      .then(() => {
+        setStatusResponse('success');
+        setMessage('Training statuses updated successfully.');
+        setUpdatedTrainings({});
         fetchTrainings();
-        setShowCreateModal(false);
-        setNewTraining({
-          trainingName: "",
-          description: "",
-          startDate: "",
-          endDate: "",
-          noOfParticipant: "",
-        });
-        setSelectedFile(null);
-      } catch (error) {
-        console.error("Error adding training:", error);
-        alert("Failed to add training. Please try again.");
-      }
+      })
+      .catch((error) => {
+        setStatusResponse('failed');
+        setMessage('Error updating training statuses.');
+        console.error("Error updating training statuses:", error);
+      });
     } else {
-      alert("Unauthorized access.");
+      setStatusResponse('unauthorized');
+      setMessage('Unauthorized access.');
     }
   };
 
@@ -220,9 +198,9 @@ const ViewTrainingManager = () => {
 
                 <td>
                   {training.status === "PENDING" ? (
-                    <span style={{ backgroundColor: "red", padding: 5, marginTop: "5px", color: "white" }}>
-                      Approval Pending
-                    </span>
+                    <Button className="view-taining-btn" onClick={() => handleUpdateTrainings(training.trainingId)}>
+                    Approve
+                  </Button>
                   ) : (
                     <Button className="view-taining-btn" onClick={() => handleViewTraining(training)}>
                       View
