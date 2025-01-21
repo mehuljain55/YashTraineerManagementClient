@@ -205,6 +205,7 @@ const ViewTrainingManager = () => {
             <th>Description</th>
             <th>Start Date</th>
             <th>End Date</th>
+            <th>Reference File</th>
             <th>Status</th>
             <th>Action</th>
           </tr>
@@ -218,6 +219,11 @@ const ViewTrainingManager = () => {
                 <td>{training.description}</td>
                 <td>{new Date(training.startDate).toLocaleDateString()}</td>
                 <td>{new Date(training.endDate).toLocaleDateString()}</td>
+                <td>
+                <Button className="view-taining-btn" onClick={() => handleExportReferenceFile(training.trainingId)}>
+       Download
+      </Button>
+                </td>
                 <td>
                 {training.status}
                 </td>
@@ -233,9 +239,7 @@ const ViewTrainingManager = () => {
       <Button className="view-taining-btn" onClick={() => handleViewTraining(training)}>
         View Training
       </Button>
-      <Button className="view-taining-btn" onClick={() => handleExportReferenceFile(training.trainingId)}>
-       Export
-      </Button>
+     
     </>
   )}
 </td>
