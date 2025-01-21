@@ -79,19 +79,18 @@ const ManagerDashboard = () => {
 
   return (
     <div>
-      {/* ShowStatus Component for Status Messages */}
       {statusResponse && <ShowStatus statusResponse={statusResponse} message={message} onClose={() => setStatusResponse(null)} />}
 
       <Button
         variant="primary"
-        className="create-training-button"  // Apply custom class for button
+        className="create-training-button"  
         onClick={() => setShowModal(true)}
       >
         Create Training
       </Button>
 
       <h3>Training List</h3>
-      <Table striped bordered hover className="training-table">  {/* Apply custom class for table */}
+      <Table striped bordered hover className="training-table">  
         <thead>
           <tr>
             <th>Training ID</th>
@@ -114,7 +113,6 @@ const ManagerDashboard = () => {
         </tbody>
       </Table>
 
-      {/* Modal for Adding Training */}
       <Modal show={showModal} onHide={() => setShowModal(false)}>
         <Modal.Header closeButton className="modal-header">
           <Modal.Title>Add New Training</Modal.Title>
