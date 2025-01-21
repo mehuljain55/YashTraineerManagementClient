@@ -8,6 +8,7 @@ import ViewTrainerSchedule from "../Trainer/ViewTrainerSchedule";
 import "bootstrap/dist/css/bootstrap.min.css";
 import AddDailySchedule from "../Trainer/AddDailySchedule";
 import ViewTrainingManager from "../Manager/ViewTrainingManager";
+import ManagerDashboard from "../Manager/ManagerDashboard";
 
 
 const Maincomponent = () => {
@@ -25,14 +26,15 @@ const Maincomponent = () => {
       case "dashboard":
         return (
           <div>
-          {user.role === "manager" ? (
+          {user.role === "trainer" ? (
             <Dashboard activeSection={setActiveSection} />
           ) : (
-            <Dashboard />
+            <ManagerDashboard />
           )}
         </div>
         
         );
+        
       case "ViewTraining":
         return (
           <div>
@@ -101,11 +103,7 @@ const Maincomponent = () => {
             }}
           />
           <h5>Welcome</h5>
-          {user.firstName && (
-            <p>
-              {user.firstName} {user.lastName}
-            </p>
-          )}
+        
         </div>
         <div className="menu mt-3">
           {user.role === "trainer" && (
