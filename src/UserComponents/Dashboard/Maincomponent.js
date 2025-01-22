@@ -9,6 +9,7 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import AddDailySchedule from "../Trainer/AddDailySchedule";
 import ViewTrainingManager from "../Manager/ViewTrainingManager";
 import ManagerDashboard from "../Manager/ManagerDashboard";
+import UserRequest from "../Manager/UserRequest";
 
 
 const Maincomponent = () => {
@@ -63,6 +64,12 @@ const Maincomponent = () => {
                 </div>
               );  
            
+              case "userRequests":
+                return (
+                  <div>
+                    <UserRequest />
+                  </div>
+                );  
       default:
         return (
           <div>
@@ -170,6 +177,19 @@ const Maincomponent = () => {
                   </button>
                 </li>
                
+                <li>
+                  <button
+                    className={`btn btn-link text-decoration-none w-100 text-start ${
+                      activeSection === "userRequests"
+                        ? "fw-bold text-primary"
+                        : "text-dark"
+                    }`}
+                    onClick={() => setActiveSection("userRequests")}
+                  >
+                   User Requests
+                  </button>
+                </li>
+
               </ul>
             </>
           )}
