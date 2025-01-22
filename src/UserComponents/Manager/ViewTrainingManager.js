@@ -8,19 +8,9 @@ import './ViewTrainingManager.css';
 
 const ViewTrainingManager = () => {
   const [trainings, setTrainings] = useState([]);
-  const [updatedTrainings, setUpdatedTrainings] = useState({});
   const [showModal, setShowModal] = useState(false);
   const [selectedStatus, setSelectedStatus] = useState("PENDING");
   const [selectedTraining, setSelectedTraining] = useState(null);
-  const [selectedFile, setSelectedFile] = useState(null);
-  const [newTraining, setNewTraining] = useState({
-    description: '',
-    trainingName: '',
-    startDate: '',
-    endDate: '',
-    noOfParticipant: '',
-  });
-  const [showCreateModal, setShowCreateModal] = useState(false);
   const [statusResponse, setStatusResponse] = useState(null);
   const [message, setMessage] = useState('');
   const token = sessionStorage.getItem("token");
@@ -91,6 +81,42 @@ const ViewTrainingManager = () => {
     }
   };
 
+  const handleExportReferenceFile = async (trainingId) => {
+    try {
+    
+      const exportModel = {
+        token,
+        user,
+        trainingId
+      };
+
+      const response = await axios.post(`${API_BASE_URL}/manager/referenceFile`, exportModel, {
+        responseType: "blob",
+      });
+
+      const filename="Training Detail Report Id:"+trainingId+".xlsx";
+
+      if (response.status === 200) {
+        const blob = new Blob([response.data], {
+          type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+      } else {
+        alert("File not found");
+      }
+    } catch (error) {
+      console.error("Error exporting training list:", error);
+      alert("File not found");
+    }
+  };
+
+
   const handleUpdateTrainings = (trainingId) => {
 
     if (user && token) {
@@ -102,7 +128,6 @@ const ViewTrainingManager = () => {
       .then(() => {
         setStatusResponse('success');
         setMessage('Training statuses updated successfully.');
-        setUpdatedTrainings({});
         fetchTrainings();
       })
       .catch((error) => {
@@ -149,6 +174,8 @@ const ViewTrainingManager = () => {
 <div className="d-flex justify-content-between align-items-center">
         <h3>Training List</h3>
 
+
+
         <Dropdown onSelect={setSelectedStatus}>
           <Dropdown.Toggle
             variant="success"
@@ -178,6 +205,7 @@ const ViewTrainingManager = () => {
             <th>Description</th>
             <th>Start Date</th>
             <th>End Date</th>
+            <th>Reference File</th>
             <th>Status</th>
             <th>Action</th>
           </tr>
@@ -192,21 +220,29 @@ const ViewTrainingManager = () => {
                 <td>{new Date(training.startDate).toLocaleDateString()}</td>
                 <td>{new Date(training.endDate).toLocaleDateString()}</td>
                 <td>
+                <Button className="view-taining-btn" onClick={() => handleExportReferenceFile(training.trainingId)}>
+       Download
+      </Button>
+                </td>
+                <td>
                 {training.status}
                 </td>
 
 
                 <td>
-                  {training.status === "PENDING" ? (
-                    <Button className="view-taining-btn" onClick={() => handleUpdateTrainings(training.trainingId)}>
-                    Approve
-                  </Button>
-                  ) : (
-                    <Button className="view-taining-btn" onClick={() => handleViewTraining(training)}>
-                      View
-                    </Button>
-                  )}
-                </td>
+  {training.status === "PENDING" ? (
+    <Button className="view-taining-btn" onClick={() => handleUpdateTrainings(training.trainingId)}>
+      Approve
+    </Button>
+  ) : (
+    <>
+      <Button className="view-taining-btn" onClick={() => handleViewTraining(training)}>
+        View Training
+      </Button>
+     
+    </>
+  )}
+</td>
               </tr>
             ))
           ) : (
