@@ -42,9 +42,45 @@ const ViewTrainingManager = () => {
   };
 
   
+  const handleExportTraining = async (trainingId) => {
+    try {
+      
+
+      const exportModel = {
+        token,
+        user,
+        trainingId,
+      };
+
+      const response = await axios.post(`${API_BASE_URL}/export/dailyScheduleAllWeek`, exportModel, {
+        responseType: "blob",
+      });
+
+      if (response.status === 200) {
+        const blob = new Blob([response.data], {
+          type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        });
+
+        const filename="Training detail list_TrainingId_"+trainingId+".xlsx";
+
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+      } else {
+        alert("Failed to export training list. Please try again.");
+      }
+    } catch (error) {
+      console.error("Error exporting training list:", error);
+      alert("An error occurred while exporting the training list.");
+    }
+  };
 
   
-  const handleExportTraining = async () => {
+  const handleExportTrainingList = async () => {
     try {
       if (trainings.length === 0) {
         alert("Nothing to export");
@@ -231,18 +267,30 @@ const ViewTrainingManager = () => {
 
                 <td>
   {training.status === "PENDING" ? (
-    <Button className="view-taining-btn" onClick={() => handleUpdateTrainings(training.trainingId)}>
+    <Button
+      className="view-training-btn"
+      onClick={() => handleUpdateTrainings(training.trainingId)}
+    >
       Approve
     </Button>
   ) : (
-    <>
-      <Button className="view-taining-btn" onClick={() => handleViewTraining(training)}>
-        View Training
+    <div style={{ display: "flex", gap: "10px" }}>
+      <Button
+        className="view-training-btn"
+        onClick={() => handleViewTraining(training)}
+      >
+        View
       </Button>
-     
-    </>
+      <Button
+        className="export-training-btn"
+        onClick={() => handleExportTraining(training.trainingId)}
+      >
+        Export
+      </Button>
+    </div>
   )}
 </td>
+
               </tr>
             ))
           ) : (
@@ -256,7 +304,7 @@ const ViewTrainingManager = () => {
       </Table>
 
       
-      <Button variant="primary" onClick={handleExportTraining}>
+      <Button variant="primary" onClick={handleExportTrainingList}>
         Export
       </Button>
 
