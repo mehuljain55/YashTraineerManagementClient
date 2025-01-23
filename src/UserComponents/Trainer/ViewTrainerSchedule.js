@@ -11,6 +11,7 @@ const ViewTrainerSchedule = () => {
   const [errorMessage, setErrorMessage] = useState('');
   const [token, setToken] = useState(sessionStorage.getItem('token'));
   const [user, setUser] = useState(JSON.parse(sessionStorage.getItem('user')));
+  const [attendanceFilter, setAttendanceFilter] = useState('ALL'); // Added state for attendance filter
 
   useEffect(() => {
     const today = new Date().toISOString().split('T')[0];
@@ -51,6 +52,10 @@ const ViewTrainerSchedule = () => {
     fetchSchedule(startDate, endDate);
   };
 
+  const handleAttendanceFilter = (status) => {
+    setAttendanceFilter(status);
+  };
+
   const formatDate = (dateString) => {
     const date = new Date(dateString);
     const day = String(date.getDate()).padStart(2, '0');
@@ -59,9 +64,14 @@ const ViewTrainerSchedule = () => {
     return `${day}/${month}/${year}`;
   };
 
+  // Filter the schedule based on attendance
+  const filteredSchedule = schedule.filter((item) =>
+    attendanceFilter === 'ALL' ? true : item.trainerAttendance === attendanceFilter
+  );
+
   return (
     <div className="container mt-4">
-      <h3 className="mb-4">Trainer Daily Schedule</h3>
+      <h3 className="mb-4">Trainer Schedule</h3>
       <div className="d-flex justify-content-between align-items-center mb-3">
         <div className="d-flex">
           <Form.Control
@@ -83,6 +93,37 @@ const ViewTrainerSchedule = () => {
 
       {errorMessage && <p className="text-danger">{errorMessage}</p>}
 
+      <div className="mb-3 d-flex flex-wrap">
+  <Button
+    variant={attendanceFilter === 'ALL' ? 'primary' : 'info'}
+    onClick={() => handleAttendanceFilter('ALL')}
+    className="me-2 mb-2"
+  >
+    All
+  </Button>
+  <Button
+    variant={attendanceFilter === 'PRESENT' ? 'primary' : 'info'}
+    onClick={() => handleAttendanceFilter('PRESENT')}
+    className="me-2 mb-2"
+  >
+    PRESENT
+  </Button>
+  <Button
+    variant={attendanceFilter === 'LEAVE' ? 'primary' : 'info'}
+    onClick={() => handleAttendanceFilter('LEAVE')}
+    className="me-2 mb-2"
+  >
+    LEAVE
+  </Button>
+  <Button
+    variant={attendanceFilter === 'NOT_UPDATED' ? 'primary' : 'info'}
+    onClick={() => handleAttendanceFilter('NOT_UPDATED')}
+    className="me-2 mb-2"
+  >
+    NOT UPDATED
+  </Button>
+</div>
+
       <Table striped bordered hover>
         <thead>
           <tr>
@@ -97,8 +138,8 @@ const ViewTrainerSchedule = () => {
           </tr>
         </thead>
         <tbody>
-          {schedule.length > 0 ? (
-            schedule.map((item, index) => (
+          {filteredSchedule.length > 0 ? (
+            filteredSchedule.map((item, index) => (
               <tr key={item.sno}>
                 <td>{index + 1}</td>
                 <td>{item.day}</td>
@@ -113,7 +154,7 @@ const ViewTrainerSchedule = () => {
           ) : (
             <tr>
               <td colSpan="8" className="text-center">
-                No schedule available for the selected date range.
+                No schedule available for the selected date range and attendance filter.
               </td>
             </tr>
           )}

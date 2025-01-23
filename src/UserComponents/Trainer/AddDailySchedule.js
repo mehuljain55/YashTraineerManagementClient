@@ -6,7 +6,6 @@ import { Table, Form, Button, Container, Row, Col } from "react-bootstrap";
 const AddDailySchedule = () => {
   const [dailyScheduleList, setDailyScheduleList] = useState([
     { 
-      date: "",
       description: "",
       trainerAttendance: "PRESENT",
     },
@@ -23,7 +22,6 @@ const AddDailySchedule = () => {
     setDailyScheduleList((prevList) => [
       ...prevList,
       {
-        date: "",
         description: "",
         trainerAttendance: "PRESENT",
       },
@@ -71,15 +69,12 @@ const AddDailySchedule = () => {
           {dailyScheduleList.map((schedule, index) => (
             <tr key={index}>
              
-              <td>
-                <Form.Control
-                  type="date"
-                  name="date"
-                  value={schedule.date}
-                  onChange={(e) => handleRowChange(e, index)}
-                  required
-                />
-              </td>
+             <td>
+  <span>
+    {new Date().toLocaleDateString('en-GB')}
+  </span>
+</td>
+
               <td>
                 <Form.Control
                   type="text"
