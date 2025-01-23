@@ -11,7 +11,7 @@ const ViewTrainerSchedule = () => {
   const [errorMessage, setErrorMessage] = useState('');
   const [token, setToken] = useState(sessionStorage.getItem('token'));
   const [user, setUser] = useState(JSON.parse(sessionStorage.getItem('user')));
-  const [attendanceFilter, setAttendanceFilter] = useState('ALL'); // Added state for attendance filter
+  const [attendanceFilter, setAttendanceFilter] = useState('ALL'); 
 
   useEffect(() => {
     const today = new Date().toISOString().split('T')[0];
@@ -64,7 +64,6 @@ const ViewTrainerSchedule = () => {
     return `${day}/${month}/${year}`;
   };
 
-  // Filter the schedule based on attendance
   const filteredSchedule = schedule.filter((item) =>
     attendanceFilter === 'ALL' ? true : item.trainerAttendance === attendanceFilter
   );
