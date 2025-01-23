@@ -288,23 +288,34 @@ const DailySchedule = ({ trainingId }) => {
           <td>{new Date(schedule.date).toLocaleDateString()}</td>
           <td>{schedule.day}</td>
           <td>
-            <Form.Select
-              value={schedule.trainerAttendance || "PRESENT"}
-              onChange={(e) => handleAttendanceChange(e, schedule.sno)}
-            >
-              <option value="PRESENT">PRESENT</option>
-              <option value="LEAVE">LEAVE</option>
-            </Form.Select>
-          </td>
-          <td>
-            <Form.Control
-              type="text"
-              value={schedule.description || ""}
-              onChange={(e) => handleDescriptionChange(e, schedule.sno)}
-              disabled={isTextFieldDisabled(schedule)}
-              placeholder={getPlaceholderText(schedule)}
-            />
-          </td>
+  <Form.Select
+    value={schedule.trainerAttendance || "NOT_UPDATED"}
+    onChange={(e) => handleAttendanceChange(e, schedule.sno)}
+  >
+    <option value="NOT_UPDATED">Not Updated</option>
+    <option value="PRESENT">PRESENT</option>
+    <option value="LEAVE">LEAVE</option>
+  </Form.Select>
+</td>
+<td>
+  <Form.Control
+    type="text"
+    value={schedule.description || ""}
+    onChange={(e) => {
+      // Automatically set attendance to PRESENT if NOT_UPDATED
+      if (schedule.trainerAttendance === "NOT_UPDATED") {
+        handleAttendanceChange({ target: { value: "PRESENT" } }, schedule.sno);
+      }
+      // Handle description change
+      handleDescriptionChange(e, schedule.sno);
+    }}
+    disabled={isTextFieldDisabled(schedule)}
+    placeholder={getPlaceholderText(schedule)}
+  />
+</td>
+
+
+
           <td>
             <Button
               variant="primary"
