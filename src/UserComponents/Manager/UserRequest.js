@@ -3,7 +3,6 @@ import { Button, Modal, Form, Table, Dropdown } from 'react-bootstrap';
 import axios from 'axios';
 import API_BASE_URL from "../Config/Config";
 import ShowStatus from "../StatusModel/ShowStatus";
-import DailySchedule from '../Trainer/DailySchedule';
 import './ViewTrainingManager.css';
 
 const UserRequest = () => {
@@ -96,8 +95,6 @@ const UserRequest = () => {
 <div className="d-flex justify-content-between align-items-center">
         <h3>User Edit Request List</h3>
 
-
-
         <Dropdown onSelect={setSelectedStatus}>
           <Dropdown.Toggle
             variant="success"
@@ -105,29 +102,25 @@ const UserRequest = () => {
             className={getStatusClass(selectedStatus)}
             style={{ borderColor: 'transparent' }}
           >
-            {selectedStatus}
+           {selectedStatus.toUpperCase()}
           </Dropdown.Toggle>
-
           <Dropdown.Menu>
-            <Dropdown.Item eventKey="pending">Pending</Dropdown.Item>
-            <Dropdown.Item eventKey="approved">Approved</Dropdown.Item>
-            <Dropdown.Item eventKey="rejected">Rejected</Dropdown.Item>
+            <Dropdown.Item eventKey="pending">PENDING</Dropdown.Item>
+            <Dropdown.Item eventKey="approved">APPROVED</Dropdown.Item>
+            <Dropdown.Item eventKey="rejected">REJECTED</Dropdown.Item>
           </Dropdown.Menu>
         </Dropdown>
       </div>
 
      
-
       <Table striped bordered hover className="training-table">
         <thead>
           <tr>
             <th>Email Id</th>
             <th>Training Name</th>
             <th>Date</th>
-      
             <th>Reason</th>
             <th>Status</th>
-          
             <th>Action</th>
           </tr>
         </thead>
@@ -142,36 +135,35 @@ const UserRequest = () => {
                 <td>{userRequest.reason}</td>
                 <td>{userRequest.status}</td>
                 <td>
-  {userRequest.status === "pending" && (
-    <>
-      <Button 
-        className="view-training-btn" 
-        variant="success" 
-        onClick={() => handleUserRequestUpdate(userRequest.requestId, "approved")}
-      >
-        Approve
-      </Button>{' '}
-      <Button 
-        className="view-training-btn" 
-        variant="danger" 
-        onClick={() => handleUserRequestUpdate(userRequest.requestId, "rejected")}
-      >
-        Reject
-      </Button>
-    </>
-  )}
-  {userRequest.status === "approved" && (
-    <Button 
-      className="view-training-btn" 
-      variant="danger" 
-      onClick={() => handleUserRequestUpdate(userRequest.requestId, "rejected")}
-    >
-      Reject
-    </Button>
-  )}
-  
-</td>
-
+                {userRequest.status === "pending" && (
+                <>
+                  <Button 
+                   className="view-training-btn" 
+                   variant="success" 
+                   onClick={() => handleUserRequestUpdate(userRequest.requestId, "approved")}
+                  >
+                   Approve
+                  </Button>{' '}
+                
+                 <Button 
+                  className="view-training-btn" 
+                  variant="danger" 
+                  onClick={() => handleUserRequestUpdate(userRequest.requestId, "rejected")}
+                  >
+                   Reject
+                </Button>
+                </>
+                )}
+                {userRequest.status === "approved" && (
+                <Button 
+                 className="view-training-btn" 
+                 variant="danger" 
+                 onClick={() => handleUserRequestUpdate(userRequest.requestId, "rejected")}
+                 >
+                Reject
+               </Button>
+              )}
+            </td>
               </tr>
             ))
           ) : (
@@ -183,10 +175,6 @@ const UserRequest = () => {
           )}
         </tbody>
       </Table>
-
-      
-     
-      
     </div>
   );
 };
