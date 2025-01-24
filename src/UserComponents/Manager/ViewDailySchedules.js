@@ -179,7 +179,7 @@ const ViewDailySchedules = () => {
           ) : (
             <tr>
               <td colSpan="8" className="text-center">
-                No schedule available for the selected date range and attendance filter.
+                No schedule available.
               </td>
             </tr>
           )}

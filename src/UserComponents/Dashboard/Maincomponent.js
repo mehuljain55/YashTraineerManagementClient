@@ -11,6 +11,8 @@ import ViewTrainingManager from "../Manager/ViewTrainingManager";
 import ManagerDashboard from "../Manager/ManagerDashboard";
 import UserRequest from "../Manager/UserRequest";
 import ViewDailySchedules from "../Manager/ViewDailySchedules";
+import UserApprovalList from "../Manager/UserApprovalList";
+
 
 
 const Maincomponent = () => {
@@ -78,6 +80,15 @@ const Maincomponent = () => {
                       <ViewDailySchedules />
                     </div>
                   );    
+
+                  case "UserApprovalList":
+                    return (
+                      <div>
+                        <UserApprovalList />
+                      </div>
+                    );    
+  
+                  
       default:
         return (
           <div>
@@ -196,7 +207,9 @@ const Maincomponent = () => {
                   >
                    User Requests
                   </button>
+                </li>
 
+                 <li>
                   <button
                     className={`btn btn-link text-decoration-none w-100 text-start ${
                       activeSection === "ViewDailySchedules"
@@ -209,6 +222,21 @@ const Maincomponent = () => {
                   </button>
 
                 </li>
+
+                <li>
+                  <button
+                    className={`btn btn-link text-decoration-none w-100 text-start ${
+                      activeSection === "UserApprovalList"
+                        ? "fw-bold text-primary"
+                        : "text-dark"
+                    }`}
+                    onClick={() => setActiveSection("UserApprovalList")}
+                  >
+                   Account Approval 
+                  </button>
+
+                </li>
+
 
               </ul>
             </>

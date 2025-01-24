@@ -453,7 +453,7 @@ const ViewTraining = () => {
               />
             </Form.Group>
             <Form.Group controlId="file">
-              <Form.Label>Upload File</Form.Label>
+              <Form.Label>Upload Training Plan</Form.Label>
               <Form.Control
                 type="file"
                 onChange={(e) => setSelectedFile(e.target.files[0])}
