@@ -23,12 +23,11 @@ const UserRequest = () => {
       axios.post(`${API_BASE_URL}/manager/userRequestList`, {
         token,
         user,
-        status: selectedStatus
+        trainingStatus: selectedStatus
       })
       .then((response) => {
         const userRequestList = Array.isArray(response.data.payload) ? response.data.payload : [];
         setUserRequest(userRequestList);
-        console.log(userRequests);
       })
       .catch((error) => {
         console.error("Error fetching training data:", error);
@@ -40,43 +39,17 @@ const UserRequest = () => {
     }
   };
 
-  const handleUserRequestUpdate = (requestId,status) => {
-    console.log("Request Id",requestId);
-    console.log("Status",status);
-    
-    if (user && token) {
-      axios.post(`${API_BASE_URL}/manager/updateUserRequest`, {
-        token,
-        user,
-        requestId: requestId,
-        status: status
-      })
-      .then((response) => {
-        console.log(response.data.message);
-       fetchRequest();
-      })
-      .catch((error) => {
-        console.error("Error fetching training data:", error);
-        fetchRequest();
-
-      });
-    } else {
-      console.error("User or Token not found in session storage");
-      setUserRequest([]);
-    }
-  };
  
   const getStatusClass = (status) => {
     switch (status) {
-      case "pending":
+      case "PENDING":
+        return "bg-danger";  // Red
+      case "PLANNED":
+        return "bg-info";    // Sky Blue
+      case "INPROGRESS":
         return "bg-warning"; // Yellow
-        
-      case "approved":
+      case "COMPLETED":
         return "bg-success"; // Green
-
-        case "rejected":
-          return "bg-danger";  // Red
-      
       default:
         return "";
     }
@@ -94,7 +67,7 @@ const UserRequest = () => {
       )}
 
 <div className="d-flex justify-content-between align-items-center">
-        <h3>User Edit Request List</h3>
+        <h3>Training List</h3>
 
 
 
@@ -141,37 +114,22 @@ const UserRequest = () => {
                 <td>{new Date(userRequest.date).toLocaleDateString()}</td>
                 <td>{userRequest.reason}</td>
                 <td>{userRequest.status}</td>
+
+
+
                 <td>
   {userRequest.status === "pending" && (
     <>
-      <Button 
-        className="view-training-btn" 
-        variant="success" 
-        onClick={() => handleUserRequestUpdate(userRequest.requestId, "approved")}
-      >
-        Approve
-      </Button>{' '}
-      <Button 
-        className="view-training-btn" 
-        variant="danger" 
-        onClick={() => handleUserRequestUpdate(userRequest.requestId, "rejected")}
-      >
-        Reject
-      </Button>
+      <Button className="view-taining-btn">Approve</Button>
+      <Button className="view-taining-btn">Reject</Button>
     </>
   )}
   {userRequest.status === "approved" && (
-    <Button 
-      className="view-training-btn" 
-      variant="danger" 
-      onClick={() => handleUserRequestUpdate(userRequest.requestId, "rejected")}
-    >
-      Reject
-    </Button>
+    <>
+      <Button className="view-taining-btn">Reject</Button>
+    </>
   )}
-  
 </td>
-
               </tr>
             ))
           ) : (
@@ -182,11 +140,7 @@ const UserRequest = () => {
             </tr>
           )}
         </tbody>
-      </Table>
-
-      
-     
-      
+      </Table>   
     </div>
   );
 };
