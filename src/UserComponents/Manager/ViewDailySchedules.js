@@ -9,8 +9,8 @@ const ViewDailySchedules = () => {
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
-  const [token, setToken] = useState(sessionStorage.getItem('token'));
-  const [user, setUser] = useState(JSON.parse(sessionStorage.getItem('user')));
+  const token = useState(sessionStorage.getItem('token'));
+  const user = useState(JSON.parse(sessionStorage.getItem('user')));
   const [attendanceFilter, setAttendanceFilter] = useState('ALL'); 
 
   useEffect(() => {
