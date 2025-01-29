@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import API_BASE_URL from "../Config/Config";
 import "bootstrap/dist/css/bootstrap.min.css";
 import YashLogo from "../Image/yash.jpg"; 
+import TrainerImage from"../Image/Trainer-login.svg";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 
 const Login = ({ setLoginStatus }) => {
@@ -52,9 +53,11 @@ const Login = ({ setLoginStatus }) => {
   };
 
   return (
+    <div className="container-fluid">
+      <div className="row login-container">
     <div
       style={{ backgroundColor: "#C6E7FF", height: "100vh" }}
-      className="d-flex justify-content-center align-items-center"
+      className="col-md-6 d-flex justify-content-center align-items-center"
     >
       <div
         className="rounded p-4"
@@ -125,6 +128,11 @@ const Login = ({ setLoginStatus }) => {
         </button>
         {error && <p className="text-danger text-center mt-3">{error}</p>}
       </div>
+    </div>
+    <div style={{backgroundImage: `url(${TrainerImage})`,backgroundRepeat:'no-repeat' , backgroundSize:'cover' ,backgroundColor: 'rgb(198, 231, 255)',height:'100vh'}} class="col-md-6 d-none d-md-block image-container ">
+
+    </div>
+    </div>
     </div>
   );
 };
